@@ -1,0 +1,6 @@
+tile map
+player character
+moving between scenes
+interacting with objects
+battle system?
+
