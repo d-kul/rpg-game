@@ -2,5 +2,8 @@ tile map
 player character
 moving between scenes
 interacting with objects
+gui
+dialog box
+settings
 battle system?
 
