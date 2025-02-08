@@ -13,6 +13,23 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/main.cpp)
+add_executable(main 
+  src/Config.cpp
+  src/Config.h
+  src/State.cpp
+  src/State.h
+  src/State/GameState.cpp
+  src/State/GameState.h
+  src/State/MainMenuState.cpp
+  src/State/MainMenuState.h
+  src/Entity.cpp
+  src/Entity.h
+  src/Entity/TestEntity.cpp
+  src/Entity/TestEntity.h
+  src/Game.cpp
+  src/Game.h
+  src/init.cpp
+  src/main.cpp)
+target_include_directories(main PRIVATE src)
 target_compile_features(main PRIVATE cxx_std_17)
-target_link_libraries(main PRIVATE SFML::Graphics)
+target_link_libraries(main PRIVATE SFML::Audio SFML::Graphics)
