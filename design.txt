@@ -4,12 +4,14 @@ x read keybinds from .ini
 x state class hierarchy
 x entity class hierarchy
 x state stack
+x button class
+x singleton Game instance access
 tile map
 player character
 snap movement to grid
 moving between scenes
 interacting with objects
-gui
+gui library
 dialog box
 settings
 level editor?

@@ -26,9 +26,11 @@ add_executable(main
   src/Entity.h
   src/Entity/TestEntity.cpp
   src/Entity/TestEntity.h
+  src/Button.cpp
+  src/Button.h
   src/Game.cpp
+  src/Game_init.cpp
   src/Game.h
-  src/init.cpp
   src/main.cpp)
 target_include_directories(main PRIVATE src)
 target_compile_features(main PRIVATE cxx_std_17)

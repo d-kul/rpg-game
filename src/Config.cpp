@@ -70,14 +70,7 @@ std::optional<long long> Config::get<long long>(const std::string& key) const {
 
 template <>
 std::optional<unsigned> Config::get<unsigned>(const std::string& key) const {
-  if (auto it = config.find(key); it != config.end()) {
-    try {
-      return std::stoul(it->second);
-    } catch (...) {
-      return std::nullopt;
-    }
-  }
-  return std::nullopt;
+  return get<unsigned long>(key);
 }
 
 template <>
@@ -103,6 +96,12 @@ std::optional<unsigned long long> Config::get<unsigned long long>(
       return std::nullopt;
     }
   }
+  return std::nullopt;
+}
+
+template <>
+std::optional<bool> Config::get<bool>(const std::string& key) const {
+  if (auto v = get<unsigned>(key)) return *v;
   return std::nullopt;
 }
 

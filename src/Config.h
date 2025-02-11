@@ -42,6 +42,8 @@ template <>
 std::optional<unsigned long long> Config::get<unsigned long long>(
     const std::string& key) const;
 template <>
+std::optional<bool> Config::get<bool>(const std::string& key) const;
+template <>
 std::optional<float> Config::get<float>(const std::string& key) const;
 template <>
 std::optional<double> Config::get<double>(const std::string& key) const;

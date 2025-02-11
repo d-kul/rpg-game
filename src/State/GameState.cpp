@@ -13,12 +13,13 @@
 void GameState::initAssets() {
   background_texture.setRepeated(true);
 
-  sf::Vector2f background_size =
-      static_cast<sf::Vector2f>(background_texture.getSize());
-  float width_scaling = background_size.y / background_size.x;
-  background_sprite.setTextureRect(sf::IntRect(
-      {0u, 0u}, {static_cast<int>(std::ceil(800.f / width_scaling)), 600u}));
-  background_sprite.setScale({width_scaling, 1.f});
+  auto& window = Game::getWindow();
+
+  background.setSize(sf::Vector2f{window.getSize()});
+  background.setTexture(&background_texture);
+
+  background.setTextureRect(
+      sf::IntRect{{0u, 0u}, sf::Vector2i{window.getSize()}});
 
   text.setFillColor(sf::Color::Green);
   text.setOutlineColor(sf::Color::Blue);
@@ -34,21 +35,11 @@ void GameState::initAssets() {
   music.play();
 }
 
-void GameState::initKeybinds() {
-  keybinds.insert({"QUIT", sf::Keyboard::Key::Escape});
-  keybinds.insert({"MAKE_SOUND", sf::Keyboard::Key::B});
-  keybinds.insert({"MOVE_UP", sf::Keyboard::Key::W});
-  keybinds.insert({"MOVE_LEFT", sf::Keyboard::Key::A});
-  keybinds.insert({"MOVE_DOWN", sf::Keyboard::Key::S});
-  keybinds.insert({"MOVE_RIGHT", sf::Keyboard::Key::D});
-}
-
 // Constructors, destructor
-GameState::GameState(std::map<std::string, sf::Keyboard::Key>& keybinds)
-    : State(keybinds), entity(new TestEntity{}) {
+GameState::GameState()
+    : keybinds(Game::getKeybinds()), entity(new TestEntity{entity_texture}) {
   std::cout << "GameState::GameState()" << '\n';
   initAssets();
-  initKeybinds();
 }
 
 GameState::~GameState() {
@@ -103,8 +94,8 @@ void GameState::update(sf::Time dt) {
 }
 
 void GameState::render(sf::RenderTarget& target) {
-  target.draw(background_sprite);
+  target.draw(background);
   target.draw(text);
+  target.draw(*entity);
   target.draw(soundsText);
-  entity->render(target);
 }

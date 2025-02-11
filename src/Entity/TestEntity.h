@@ -6,20 +6,16 @@
 
 class TestEntity : public Entity {
  private:
-  const sf::Transformable& asTransformable() const;
-  sf::Transformable& asTransformable();
+  sf::Sprite sprite;
+  float movementSpeed = 600.f;
 
  public:
-  TestEntity();
+  TestEntity(const sf::Texture& texture);
   ~TestEntity();
 
-  void move(sf::Vector2f offset);
+  void update(sf::Time dt) override;
 
-  void update(sf::Time dt);
-  void render(sf::RenderTarget& target);
+  void move(sf::Vector2f offset) override;
 
- private:
-  sf::Texture texture{"resources/pearto.png"};
-  sf::RectangleShape shape{{100.f, 100.f}};
-  float movementSpeed = 300.f;
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };

@@ -4,8 +4,14 @@ Entity::Entity() {}
 
 Entity::~Entity() {}
 
-void Entity::move(sf::Vector2f offset) { asTransformable().move(offset); }
+void Entity::move(sf::Vector2f offset) {
+  sf::Transformable::move(offset);
+}
 
-void Entity::rotate(sf::Angle angle) { asTransformable().rotate(angle); }
+void Entity::rotate(sf::Angle angle) {
+  sf::Transformable::rotate(angle);
+}
 
-void Entity::scale(sf::Vector2f factor) { asTransformable().scale(factor); }
+void Entity::scale(sf::Vector2f factor) {
+  sf::Transformable::scale(factor);
+}

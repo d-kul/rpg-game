@@ -1,22 +1,23 @@
 #pragma once
 
 #include <SFML/Audio.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System.hpp>
 #include <list>
 #include <memory>
 
 #include "Entity.h"
+#include "Game.h"
 #include "State.h"
 
 class GameState : public State {
  private:
   // Initialization
   void initAssets();
-  void initKeybinds();
 
  public:
   // Constructors, destructor
-  GameState(std::map<std::string, sf::Keyboard::Key>& keybinds);
+  GameState();
   virtual ~GameState();
 
   // Functionality
@@ -27,12 +28,15 @@ class GameState : public State {
   void render(sf::RenderTarget& target) override;
 
  private:
-  // Members
-  std::unique_ptr<Entity> entity;
+  // Bindings
+  Game::keybinds_t& keybinds;
 
+  // Members
   sf::Texture background_texture{"resources/test.jpg", false,
                                  sf::IntRect({0, 2}, {190, 162})};
-  sf::Sprite background_sprite{background_texture};
+  sf::Texture entity_texture{"resources/pearto.png"};
+  std::unique_ptr<Entity> entity;
+  sf::RectangleShape background;
   sf::Font font{"resources/papyrus.ttf"};
   sf::Text text{font, "game design is my passion", 40};
   sf::Music music{"resources/teto scatman.ogg"};

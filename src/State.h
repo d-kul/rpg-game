@@ -1,19 +1,13 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <map>
-#include <vector>
 
 class State {
  private:
   bool quit = false;
-  std::vector<sf::Texture> textures;
- 
- protected:
-  std::map<std::string, sf::Keyboard::Key>& keybinds;
 
  public:
-  State(std::map<std::string, sf::Keyboard::Key>& keybinds);
+  State();
   virtual ~State();
 
   bool isQuit();
