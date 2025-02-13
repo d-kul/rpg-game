@@ -1,10 +1,7 @@
 #include "Game.h"
 
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/Window/VideoMode.hpp>
+#include <SFML/System/Time.hpp>
 #include <algorithm>
-#include <entt/entity/fwd.hpp>
 #include <optional>
 
 #include "Config.h"
@@ -63,7 +60,7 @@ void Game::initWindow() {
       context_settings);
   window.setFramerateLimit(framerate_limit);
   window.setVerticalSyncEnabled(vsync_enabled);
-  window.setPosition(sf::Vector2i{screen_middle});
+  if (!fullscreen) window.setPosition(sf::Vector2i{screen_middle});
 }
 
 void Game::initKeybinds() {
@@ -111,10 +108,10 @@ void Game::handleEvents() {
 }
 
 void Game::update(sf::Time dt) {
+  sound_system.clearStopped(registry);
   handleEvents();
   player_system.update(registry, dt);
   movement_system.update(registry, dt);
-  sound_system.clearStopped(registry);
   if (auto next_state = state->getNext()) {
     state->exit();
     sound_system.clearAll(registry);

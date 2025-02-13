@@ -2,10 +2,11 @@
 
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/System/Clock.hpp>
+#include <entt/entt.hpp>
 
 class PlayerComponent {
  public:
-  sf::SoundBuffer& soundBuffer;
+  entt::resource<sf::SoundBuffer> soundBuffer;
   sf::Clock clock{};
   float movementSpeed = 600.f;
 };

@@ -15,8 +15,8 @@ using namespace entt::literals;
 void MainMenuState::loadResources() {
   font =
       Game::retain<sf::Font>("fonts/papyrus"_hs, "resources/fonts/papyrus.ttf");
-  mono_font = Game::load<sf::Font>("fonts/DroidSansMono"_hs,
-                                   "resources/fonts/DroidSansMono.ttf");
+  mono_font = Game::retain<sf::Font>("fonts/DroidSansMono"_hs,
+                                     "resources/fonts/DroidSansMono.ttf");
   background_texture = Game::retain<sf::Texture>("textures/pearto"_hs,
                                                  "resources/images/pearto.png");
 }

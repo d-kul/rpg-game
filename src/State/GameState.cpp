@@ -7,6 +7,8 @@
 
 #include "Component/MovementComponent.h"
 #include "Component/PlayerComponent.h"
+#include "Component/SoundComponent.h"
+#include "Component/SoundTrackerComponent.h"
 #include "Game.h"
 #include "State/MainMenuState.h"
 
@@ -22,6 +24,8 @@ void GameState::loadResources() {
                                            "resources/images/pearto.png");
   font =
       Game::load<sf::Font>("fonts/papyrus"_hs, "resources/fonts/papyrus.ttf");
+  mono_font = Game::load<sf::Font>("fonts/DroidSansMono"_hs,
+                                   "resources/fonts/DroidSansMono.ttf");
   music = Game::load<sf::Music>("music/teto scatman"_hs,
                                 "resources/music/teto scatman.ogg");
   sound_buffer = Game::load<sf::SoundBuffer>("sounds/vine_boom.wav"_hs,
@@ -46,7 +50,7 @@ void GameState::loadAssets() {
   registry.emplace<sf::Sprite>(player, *player_texture);
   registry.emplace<sf::Transformable>(player);
   registry.emplace<MovementComponent>(player);
-  registry.emplace<PlayerComponent>(player, *sound_buffer);
+  registry.emplace<PlayerComponent>(player, sound_buffer);
 
   text.setFillColor(sf::Color::Green);
   text.setOutlineColor(sf::Color::Blue);
@@ -58,13 +62,23 @@ void GameState::loadAssets() {
   sounds_text->setOutlineColor(sf::Color::Blue);
   sounds_text->setOutlineThickness(1.5f);
   soundsHook(registry, entt::null);
+
+  auto sound_tracking_entity = registry.create();
+  registry.emplace<DrawableComponent>(sound_tracking_entity);
+  registry.emplace<SoundTrackerComponent>(sound_tracking_entity);
+  auto& sound_tracking_text =
+      registry.emplace<sf::Text>(sound_tracking_entity, *mono_font, "", 14);
+  sound_tracking_text.setFillColor(sf::Color::Green);
+  sound_tracking_text.setOutlineColor(sf::Color::Blue);
+  sound_tracking_text.setOutlineThickness(1.5f);
 }
 
 // State lifetime
 void GameState::enter() {
   std::cout << "GameState::enter()" << '\n';
-  registry.on_construct<sf::Sound>().connect<&GameState::soundsHook>(*this);
-  registry.on_destroy<sf::Sound>().connect<&GameState::soundsHook>(*this);
+  registry.on_construct<SoundComponent>().connect<&GameState::soundsHook>(
+      *this);
+  registry.on_destroy<SoundComponent>().connect<&GameState::soundsHook>(*this);
   loadResources();
   loadAssets();
   music->play();
@@ -72,8 +86,10 @@ void GameState::enter() {
 
 void GameState::exit() {
   std::cout << "GameState::exit()" << '\n';
-  registry.on_construct<sf::Sound>().disconnect<&GameState::soundsHook>(*this);
-  registry.on_destroy<sf::Sound>().disconnect<&GameState::soundsHook>(*this);
+  registry.on_construct<SoundComponent>().disconnect<&GameState::soundsHook>(
+      *this);
+  registry.on_destroy<SoundComponent>().disconnect<&GameState::soundsHook>(
+      *this);
   music->stop();
 }
 
@@ -88,6 +104,6 @@ void GameState::handleEvent(const sf::Event& event) {
 }
 
 void GameState::soundsHook(entt::registry& registry, entt::entity entity) {
-  sounds = registry.storage<sf::Sound>().size();
+  sounds = registry.storage<SoundComponent>().size();
   sounds_text->setString("vine booms: " + std::to_string(sounds));
 }

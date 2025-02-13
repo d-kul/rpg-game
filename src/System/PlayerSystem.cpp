@@ -4,6 +4,7 @@
 
 #include "Component/MovementComponent.h"
 #include "Component/PlayerComponent.h"
+#include "Component/SoundComponent.h"
 #include "Game.h"
 
 PlayerSystem::PlayerSystem() : keybinds(Game::getKeybinds()) {}
@@ -13,10 +14,10 @@ void PlayerSystem::update(entt::registry& registry, sf::Time dt) const {
   for (auto [entity, player, movement] : view.each()) {
     if (sf::Keyboard::isKeyPressed(keybinds["MAKE_SOUND"]) &&
         player.clock.getElapsedTime() > PRESS_FREQ &&
-        registry.storage<sf::Sound>().size() < MAX_SOUNDS) {
+        registry.storage<SoundComponent>().size() < MAX_SOUNDS) {
       player.clock.restart();
-      auto& added_sound =
-          registry.emplace<sf::Sound>(registry.create(), player.soundBuffer);
+      auto& added_sound = registry.emplace<SoundComponent>(registry.create(),
+                                                           *player.soundBuffer);
       added_sound.setPlayingOffset(sf::seconds(0.26f));
       added_sound.play();
     }

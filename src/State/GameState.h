@@ -29,7 +29,7 @@ class GameState : public State {
  private:
   // Resources
   entt::resource<sf::Texture> background_texture, player_texture;
-  entt::resource<sf::Font> font;
+  entt::resource<sf::Font> font, mono_font;
   entt::resource<sf::Music> music;
   entt::resource<sf::SoundBuffer> sound_buffer;
 
