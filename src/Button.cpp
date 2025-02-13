@@ -17,8 +17,6 @@ Button::Button(sf::Vector2f size, const sf::Font& font, sf::String text,
   this->text.setPosition(shape.getLocalBounds().getCenter());
 }
 
-Button::~Button() {}
-
 // Builder methods
 Button& Button::setSize(sf::Vector2f size) {
   shape.setSize(size);
@@ -76,7 +74,7 @@ Button& Button::setOnClick(Button::hook_t hook) {
 }
 
 // Functionality
-void Button::onEvent(sf::Event event) {
+void Button::handleEvent(sf::Event event) {
   if (const auto* mouseMoved = event.getIf<sf::Event::MouseMoved>()) {
     if (pointInside(mouseMoved->position)) {
       shape.setFillColor(pressed ? activeColor : hoverColor);

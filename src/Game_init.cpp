@@ -1,6 +1,6 @@
 #include "Game.h"
 
-const Game::keybinds_t Game::default_keybinds = {
+const keybinds_t Game::default_keybinds = {
     {"QUIT", sf::Keyboard::Key::Escape},
     {"START_GAME", sf::Keyboard::Key::Enter},
     {"MAKE_SOUND", sf::Keyboard::Key::B},
@@ -10,7 +10,7 @@ const Game::keybinds_t Game::default_keybinds = {
     {"MOVE_RIGHT", sf::Keyboard::Key::D},
 };
 
-const Game::key_index_t Game::key_index = {
+const key_index_t Game::key_index = {
     {"A", sf::Keyboard::Key::A},
     {"B", sf::Keyboard::Key::B},
     {"C", sf::Keyboard::Key::C},
@@ -114,7 +114,7 @@ const Game::key_index_t Game::key_index = {
     {"Pause", sf::Keyboard::Key::Pause},
 };
 
-const Game::key_storage_t Game::key_storage = {
+const key_storage_t Game::key_storage = {
     {sf::Keyboard::Key::A, "A"},
     {sf::Keyboard::Key::B, "B"},
     {sf::Keyboard::Key::C, "C"},

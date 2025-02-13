@@ -4,9 +4,11 @@
 #include <SFML/Window/ContextSettings.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowEnums.hpp>
+#include <entt/entity/fwd.hpp>
 #include <optional>
 
 #include "Config.h"
+#include "State/GameState.h"
 #include "State/MainMenuState.h"
 
 // Singleton access
@@ -15,9 +17,9 @@ Game& Game::instance() { return instance_; }
 // Singleton member access
 sf::RenderWindow& Game::getWindow() { return instance_.window; }
 
-Game::states_t& Game::getStates() { return instance_.states; }
+keybinds_t& Game::getKeybinds() { return instance_.keybinds; }
 
-Game::keybinds_t& Game::getKeybinds() { return instance_.keybinds; }
+entt::registry& Game::getRegistry() { return instance_.registry; }
 
 // Initialization
 void Game::initWindow() {
@@ -57,47 +59,54 @@ void Game::initKeybinds() {
   }
 }
 
-void Game::initStates() { states.emplace(new MainMenuState{}); }
+void Game::initRegistry() {}
+
+void Game::initState() {
+  state = std::make_unique<MainMenuState>();
+  state->enter();
+}
 
 // Constructors, destructor
 Game::Game() {
   initWindow();
   initKeybinds();
-  initStates();
+  initRegistry();
+  initState();
 }
 
-Game::~Game() {}
+Game::~Game() { 
+  state->exit();
+  state.reset();
+  registry.clear(); 
+}
 
 // Functionality
-void Game::pollEvents() {
+void Game::handleEvents() {
   while (const std::optional event = window.pollEvent()) {
     if (event->is<sf::Event::Closed>()) {
       window.close();
     }
-    if (!states.empty()) {
-      states.top()->onEvent(*event);
-    }
+    state->handleEvent(*event);
+    event_handler_system.handleEvent(registry, *event);
   }
 }
 
 void Game::update(sf::Time dt) {
-  pollEvents();
-  if (!states.empty()) {
-    states.top()->update(dt);
-    if (states.top()->isQuit()) {
-      states.top()->endState();
-      states.pop();
-    }
-  } else {
-    window.close();
+  handleEvents();
+  player_system.update(registry, dt);
+  movement_system.update(registry, dt);
+  sound_system.clearStopped(registry);
+  if (auto next_state = state->getNext()) {
+    state->exit();
+    sound_system.clearAll(registry);
+    state = std::move(next_state);
+    state->enter();
   }
 }
 
 void Game::render() {
   window.clear();
-  if (!states.empty()) {
-    states.top()->render(window);
-  }
+  state->render();
   window.display();
 }
 

@@ -1,37 +1,39 @@
 #pragma once
 
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics.hpp>
+#include <SFML/Window/Window.hpp>
+#include <entt/entt.hpp>
+#include <memory>
 
 #include "Button.h"
-#include "Game.h"
 #include "State.h"
 
 class MainMenuState : public State {
  private:
+  // Lifetime management
+  void loadResources();
+  void loadAssets();
+
  public:
-  // Constructors, destructor
-  MainMenuState();
-  virtual ~MainMenuState();
+  MainMenuState() = default;
+
+  // State lifetime
+  void enter() override;
+  void exit() override;
 
   // Functionality
-  void endState() override;
-  void onEvent(const sf::Event& event) override;
-  void update(sf::Time dt) override;
-  void render(sf::RenderTarget& target) override;
+  void render() override;
+  void handleEvent(const sf::Event& event) override;
 
  private:
-  // Bindings
-  Game::states_t& states;
-  Game::keybinds_t& keybinds;
+  // Resources
+  sf::Font font;
+  sf::Font mono_font;
+  sf::Texture background_texture;
 
   // Members
-  sf::Texture background_texture{"resources/pearto.png"};
-  sf::RectangleShape background;
-  const sf::Font font{"resources/papyrus.ttf"};
-  const sf::Font mono_font{"resources/DroidSansMono.ttf"};
-  sf::Text text{font, "", 40};
-  Button start_button{{200.f, 70.f}, mono_font, "Start game"};
-  Button settings_button{{200.f, 70.f}, mono_font, "Settings"};
-  Button exit_button{{200.f, 70.f}, mono_font, "Quit"};
+  sf::RectangleShape* background = nullptr;
+  sf::Text* text = nullptr;
+  Button *start_button = nullptr, *settings_button = nullptr,
+         *quit_button = nullptr;
 };

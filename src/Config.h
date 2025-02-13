@@ -13,6 +13,7 @@ class Config {
   static Config read(const std::filesystem::path& filename);
 
   Config(const std::filesystem::path& filename);
+  ~Config() = default;
 
   template <typename T = std::string>
   std::optional<T> get(const std::string& key) const = delete;

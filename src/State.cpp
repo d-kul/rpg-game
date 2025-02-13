@@ -1,13 +1,29 @@
 #include "State.h"
 
-#include <iostream>
+#include "Game.h"
 
-State::State() { std::cout << "State::State()" << '\n'; }
+State::State()
+    : keybinds(Game::getKeybinds()),
+      window(Game::getWindow()),
+      registry(Game::getRegistry()) {}
 
-State::~State() { std::cout << "State::~State()" << '\n'; }
+State::~State() {
+  for (auto entity : entities) {
+    registry.destroy(entity);
+  }
+}
 
-bool State::isQuit() { return quit; }
+// State lifetime
+void State::exit() {}
+void State::enter() {}
 
-void State::startQuit() { quit = true; }
+// Functionality
+void State::render() {}
 
-void State::onEvent(const sf::Event& event) {}
+void State::handleEvent(const sf::Event& event) {}
+
+std::unique_ptr<State> State::getNext() { return std::move(next_state); }
+
+entt::entity State::create() {
+  return entities.emplace_back(registry.create());
+}

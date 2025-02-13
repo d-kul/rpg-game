@@ -14,7 +14,7 @@ class Button : public sf::Transformable, public sf::Drawable {
          sf::Color idleColor = sf::Color::White,
          sf::Color hoverColor = sf::Color{200u, 200u, 200u},
          sf::Color activeColor = sf::Color{128u, 128u, 128u});
-  ~Button();
+  ~Button() = default;
 
   // Builder methods
   Button& setSize(sf::Vector2f size);
@@ -30,7 +30,7 @@ class Button : public sf::Transformable, public sf::Drawable {
   Button& setOnClick(hook_t hook);
 
   // Functionality
-  void onEvent(sf::Event event);
+  void handleEvent(sf::Event event);
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   sf::FloatRect getLocalBounds();
   sf::FloatRect getGlobalBounds();

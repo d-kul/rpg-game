@@ -3,42 +3,42 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
+#include <entt/entt.hpp>
 #include <memory>
-#include <stack>
-#include <string>
-#include <unordered_map>
 
 #include "State.h"
+#include "System/EventHandlerSystem.h"
+#include "System/MovementSystem.h"
+#include "System/PlayerSystem.h"
+#include "System/RenderSystem.h"
+#include "System/SoundSystem.h"
+#include "utility.h"
 
 class Game {
  public:
-  using states_t = std::stack<std::unique_ptr<State>>;
-  using keybinds_t = std::unordered_map<std::string, sf::Keyboard::Key>;
-  using key_index_t = std::unordered_map<std::string, sf::Keyboard::Key>;
-  using key_storage_t = std::unordered_map<sf::Keyboard::Key, const char*>;
-
   // Singleton access
   static Game& instance();
 
   // Singleton member access
   static sf::RenderWindow& getWindow();
   static keybinds_t& getKeybinds();
-  static states_t& getStates();
+  static entt::registry& getRegistry();
 
  private:
   // Initialization
   void initWindow();
   void initKeybinds();
-  void initStates();
+  void initRegistry();
+  void initState();
 
  private:
   // Constructors, destructor
   Game();
-  virtual ~Game();
+  ~Game();
 
  public:
   // Functionality
-  void pollEvents();
+  void handleEvents();
   void update(sf::Time dt);
   void render();
   void run();
@@ -51,11 +51,19 @@ class Game {
   bool fullscreen = false;
   sf::ContextSettings context_settings;
   sf::Clock clock;
+  std::unique_ptr<State> state;
 
   // Accessible through singleton
   sf::RenderWindow window;
   keybinds_t keybinds;
-  states_t states;
+  entt::registry registry;
+
+  // Systems
+  EventHandlerSystem event_handler_system;
+  RenderSystem render_system;
+  SoundSystem sound_system;
+  MovementSystem movement_system;
+  PlayerSystem player_system;
 
   static const keybinds_t default_keybinds;
 
