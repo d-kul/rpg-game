@@ -28,15 +28,12 @@ class GameState : public State {
 
  private:
   // Resources
-  sf::Texture background_texture, entity_texture;
-  sf::Font font;
-  sf::Music music;
+  entt::resource<sf::Texture> background_texture, player_texture;
+  entt::resource<sf::Font> font;
+  entt::resource<sf::Music> music;
+  entt::resource<sf::SoundBuffer> sound_buffer;
 
   // Members
-  sf::Sprite* player_sprite = nullptr;
-  sf::Transformable* player_transform = nullptr;
-  sf::RectangleShape* background = nullptr;
-  sf::Text* text = nullptr;
   sf::Text* sounds_text = nullptr;
   std::size_t sounds = 0;
 };

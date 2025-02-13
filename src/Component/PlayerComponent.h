@@ -5,7 +5,7 @@
 
 class PlayerComponent {
  public:
-  sf::SoundBuffer soundBuffer;
+  sf::SoundBuffer& soundBuffer;
   sf::Clock clock{};
   float movementSpeed = 600.f;
 };

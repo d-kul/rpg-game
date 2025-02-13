@@ -1,14 +1,13 @@
 #include "Game.h"
 
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
-#include <SFML/Window/ContextSettings.hpp>
 #include <SFML/Window/VideoMode.hpp>
-#include <SFML/Window/WindowEnums.hpp>
+#include <algorithm>
 #include <entt/entity/fwd.hpp>
 #include <optional>
 
 #include "Config.h"
-#include "State/GameState.h"
 #include "State/MainMenuState.h"
 
 // Singleton access
@@ -21,25 +20,42 @@ keybinds_t& Game::getKeybinds() { return instance_.keybinds; }
 
 entt::registry& Game::getRegistry() { return instance_.registry; }
 
+void Game::release(retained_t::iterator it) { instance_.retained.erase(it); }
+
 // Initialization
 void Game::initWindow() {
-  (void)sf::VideoMode::getFullscreenModes();
   // Load options from "window.ini" file
   Config config{"config/window.ini"};
   std::string title = config.get("title").value_or("something cool");
   sf::VideoMode video_mode = sf::VideoMode::getDesktopMode();
-  if (auto value = config.get<unsigned>("width")) video_mode.size.x = *value;
-  if (auto value = config.get<unsigned>("height")) video_mode.size.y = *value;
   fullscreen = config.get<bool>("fullscreen").value_or(false);
+  if (auto width = config.get<unsigned>("width"),
+      height = config.get<unsigned>("height");
+      width && height) {
+    if (fullscreen) {
+      auto& modes = sf::VideoMode::getFullscreenModes();
+      auto it = std::find_if(
+          modes.begin(), modes.end(), [&](const sf::VideoMode& mode) {
+            return mode.size.x == width && mode.size.y == height;
+          });
+      if (it != modes.end()) {
+        video_mode = *it;
+      }
+    } else {
+      video_mode.size.x = *width;
+      video_mode.size.y = *height;
+    }
+  }
   unsigned framerate_limit =
       config.get<unsigned>("framerate_limit").value_or(144);
   bool vsync_enabled = config.get<bool>("vsync_enabled").value_or(false);
   unsigned antialiasing_level =
       config.get<unsigned>("antialiasing_level").value_or(0);
 
-  context_settings.antiAliasingLevel = antialiasing_level;
-  // context_settings.attributeFlags = sf::ContextSettings::Debug;
+  auto screen_middle =
+      (sf::VideoMode::getDesktopMode().size - video_mode.size) / 2u;
 
+  context_settings.antiAliasingLevel = antialiasing_level;
   window.create(
       video_mode, title,
       fullscreen ? sf::Style::None : sf::Style::Titlebar | sf::Style::Close,
@@ -47,6 +63,7 @@ void Game::initWindow() {
       context_settings);
   window.setFramerateLimit(framerate_limit);
   window.setVerticalSyncEnabled(vsync_enabled);
+  window.setPosition(sf::Vector2i{screen_middle});
 }
 
 void Game::initKeybinds() {
@@ -64,6 +81,7 @@ void Game::initRegistry() {}
 void Game::initState() {
   state = std::make_unique<MainMenuState>();
   state->enter();
+  registry.sort<DrawableComponent>(std::less<DrawableComponent>{});
 }
 
 // Constructors, destructor
@@ -74,10 +92,11 @@ Game::Game() {
   initState();
 }
 
-Game::~Game() { 
+Game::~Game() {
   state->exit();
   state.reset();
-  registry.clear(); 
+  retained.clear();
+  registry.clear();
 }
 
 // Functionality
@@ -101,12 +120,14 @@ void Game::update(sf::Time dt) {
     sound_system.clearAll(registry);
     state = std::move(next_state);
     state->enter();
+    registry.sort<DrawableComponent>(std::less<DrawableComponent>{});
   }
 }
 
 void Game::render() {
   window.clear();
   state->render();
+  render_system.render(registry, window);
   window.display();
 }
 

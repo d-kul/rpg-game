@@ -32,6 +32,8 @@ add_executable(main
   src/State/MainMenuState.h
   src/Component/MovementComponent.h
   src/Component/PlayerComponent.h
+  src/Component/DrawableComponent.cpp
+  src/Component/DrawableComponent.h
   src/System/RenderSystem.cpp
   src/System/RenderSystem.h
   src/System/SoundSystem.cpp
