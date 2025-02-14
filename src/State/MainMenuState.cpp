@@ -22,45 +22,42 @@ void MainMenuState::loadResources() {
 }
 
 void MainMenuState::loadAssets() {
-  sf::RectangleShape& background = emplaceDrawable<sf::RectangleShape>();
-  sf::Text& text = emplaceDrawable<sf::Text>(*font, "", 40);
-  Button& start_button = emplaceDrawable<Button>(sf::Vector2f{200.f, 70.f},
-                                                 *mono_font, "Start game");
-  Button& settings_button = emplaceDrawable<Button>(sf::Vector2f{200.f, 70.f},
-                                                    *mono_font, "Settings");
-  Button& quit_button =
-      emplaceDrawable<Button>(sf::Vector2f{200.f, 70.f}, *mono_font, "Quit");
-
+  sf::RectangleShape& background =
+      registry.emplace<sf::RectangleShape>(create_entity());
   background.setSize(sf::Vector2f{window.getSize()});
   background.setTexture(&*background_texture);
 
+  sf::Text& text = registry.emplace<sf::Text>(create_entity(), *font, "", 40);
   text.setPosition({20.f, 20.f});
   text.setFillColor(sf::Color::Black);
-  std::string text_string;
-  text_string += Game::key_storage.at(keybinds["QUIT"]);
-  text_string += " - exit to menu\n";
-  text_string += Game::key_storage.at(keybinds["MOVE_UP"]);
-  text_string += Game::key_storage.at(keybinds["MOVE_LEFT"]);
-  text_string += Game::key_storage.at(keybinds["MOVE_DOWN"]);
-  text_string += Game::key_storage.at(keybinds["MOVE_RIGHT"]);
-  text_string += " - move\n";
-  text_string += Game::key_storage.at(keybinds["MAKE_SOUND"]);
-  text_string += " - vine boom";
-  text.setString(std::move(text_string));
+  auto& keys = Game::key_storage;
+  std::stringstream ss;
+  ss << keys.at(keybinds["QUIT"]) << " - exit to menu\n"
+     << keys.at(keybinds["MOVE_UP"]) << keys.at(keybinds["MOVE_LEFT"])
+     << keys.at(keybinds["MOVE_DOWN"]) << keys.at(keybinds["MOVE_RIGHT"])
+     << " - move\n"
+     << keys.at(keybinds["MAKE_SOUND"]) << " - shoot a thing";
+  text.setString(ss.str());
 
   auto screen_middle = sf::Vector2f{window.getSize()} * 0.5f;
 
+  Button& start_button = registry.emplace<Button>(
+      create_entity(), sf::Vector2f{200.f, 70.f}, *mono_font, "Start game");
   start_button.setOrigin(start_button.getGlobalBounds().getCenter());
   start_button.setPosition(screen_middle + sf::Vector2f{0.f, -80.f});
+  start_button.onClick().connect<&MainMenuState::onStart>(*this);
 
-  settings_button.setOrigin(quit_button.getGlobalBounds().getCenter());
+  Button& settings_button = registry.emplace<Button>(
+      create_entity(), sf::Vector2f{200.f, 70.f}, *mono_font, "Settings");
+  settings_button.setOrigin(settings_button.getGlobalBounds().getCenter());
   settings_button.setPosition(screen_middle + sf::Vector2f{0.f, 0.f});
+  settings_button.onClick().connect<&MainMenuState::onSettings>(*this);
 
+  Button& quit_button = registry.emplace<Button>(
+      create_entity(), sf::Vector2f{200.f, 70.f}, *mono_font, "Quit");
   quit_button.setOrigin(quit_button.getGlobalBounds().getCenter());
   quit_button.setPosition(screen_middle + sf::Vector2f{0.f, 80.f});
-
-  start_button.setOnClick([&] { next_state = std::make_unique<GameState>(); });
-  quit_button.setOnClick([&] { window.close(); });
+  quit_button.onClick().connect<&MainMenuState::onQuit>(*this);
 }
 
 // State lifetime
@@ -68,11 +65,15 @@ void MainMenuState::enter() {
   std::cout << "MainMenuState::enter()" << '\n';
   loadResources();
   loadAssets();
+  window.setView(window.getDefaultView());
 }
 
 void MainMenuState::exit() { std::cout << "MainMenuState::exit()" << '\n'; }
 
 // Functionality
-void MainMenuState::render() {}
+void MainMenuState::update() {}
 
-void MainMenuState::handleEvent(const sf::Event& event) {}
+// Listeners
+void MainMenuState::onStart() { next_state = std::make_unique<GameState>(); }
+void MainMenuState::onSettings() {}
+void MainMenuState::onQuit() { window.close(); }

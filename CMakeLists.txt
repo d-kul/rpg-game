@@ -30,20 +30,23 @@ add_executable(main
   src/State/GameState.h
   src/State/MainMenuState.cpp
   src/State/MainMenuState.h
-  src/Component/MovementComponent.h
-  src/Component/PlayerComponent.h
   src/Component/DrawableComponent.cpp
   src/Component/DrawableComponent.h
+  src/Component/SoundComponent.h
+  src/Component/MovementComponent.h
+  src/Component/SoundTrackerComponent.h
+  src/Component/PlayerComponent.h
+  src/Component/BulletComponent.h
   src/System/RenderSystem.cpp
   src/System/RenderSystem.h
   src/System/SoundSystem.cpp
   src/System/SoundSystem.h
   src/System/MovementSystem.cpp
   src/System/MovementSystem.h
-  src/System/EventHandlerSystem.cpp
-  src/System/EventHandlerSystem.h
   src/System/PlayerSystem.cpp
   src/System/PlayerSystem.h
+  src/System/BulletSystem.cpp
+  src/System/BulletSystem.h
   src/Button.cpp
   src/Button.h
   src/Game.cpp

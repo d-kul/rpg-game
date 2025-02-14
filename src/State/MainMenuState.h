@@ -20,8 +20,12 @@ class MainMenuState : public State {
   void exit() override;
 
   // Functionality
-  void render() override;
-  void handleEvent(const sf::Event& event) override;
+  void update() override;
+  
+  // Listeners
+  void onStart();
+  void onSettings();
+  void onQuit();
 
  private:
   // Resources

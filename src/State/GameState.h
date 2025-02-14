@@ -21,19 +21,25 @@ class GameState : public State {
   void exit() override;
 
   // Functionality
-  void render() override;
-  void handleEvent(const sf::Event& event) override;
+  void update() override;
 
-  void soundsHook(entt::registry& registry, entt::entity entity);
+  // Helpers
+  void setText();
+
+  // Listeners
+  void onKeyReleased(sf::Event::KeyReleased keyReleased);
+  void onSoundConstruct(entt::registry& registry, entt::entity entity);
+  void onSoundDestroy(entt::registry& registry, entt::entity entity);
 
  private:
   // Resources
-  entt::resource<sf::Texture> background_texture, player_texture;
+  entt::resource<sf::Texture> background_texture;
   entt::resource<sf::Font> font, mono_font;
   entt::resource<sf::Music> music;
-  entt::resource<sf::SoundBuffer> sound_buffer;
 
   // Members
+  sf::RectangleShape* background = nullptr;
   sf::Text* sounds_text = nullptr;
+  sf::Text* mouse_text = nullptr;
   std::size_t sounds = 0;
 };

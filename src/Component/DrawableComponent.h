@@ -2,11 +2,13 @@
 
 #include <cstddef>
 
-struct DrawableComponent {
+class DrawableComponent {
+ public:
   DrawableComponent();
+
+  friend bool operator<(const DrawableComponent&, const DrawableComponent&);
 
  private:
   std::size_t getIndex();
   std::size_t index;
-  friend bool operator<(const DrawableComponent&, const DrawableComponent&);
 };

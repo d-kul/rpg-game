@@ -15,94 +15,38 @@ Button::Button(sf::Vector2f size, const sf::Font& font, sf::String text,
   this->text.setFillColor(textColor);
   this->text.setOrigin(this->text.getLocalBounds().getCenter());
   this->text.setPosition(shape.getLocalBounds().getCenter());
+
+  auto& dispatcher = Game::getDispatcher();
+  dispatcher.sink<sf::Event::MouseMoved>()
+      .connect<&Button::onMouseMovedListener>(*this);
+  dispatcher.sink<sf::Event::MouseButtonPressed>()
+      .connect<&Button::onMouseButtonPressedListener>(*this);
+  dispatcher.sink<sf::Event::MouseButtonReleased>()
+      .connect<&Button::onMouseButtonReleasedListener>(*this);
 }
 
-// Builder methods
-Button& Button::setSize(sf::Vector2f size) {
-  shape.setSize(size);
-  return *this;
+Button::~Button() {
+  auto& dispatcher = Game::getDispatcher();
+  dispatcher.sink<sf::Event::MouseMoved>()
+      .disconnect<&Button::onMouseMovedListener>(*this);
+  dispatcher.sink<sf::Event::MouseButtonPressed>()
+      .disconnect<&Button::onMouseButtonPressedListener>(*this);
+  dispatcher.sink<sf::Event::MouseButtonReleased>()
+      .disconnect<&Button::onMouseButtonReleasedListener>(*this);
 }
 
-Button& Button::setFont(const sf::Font& font) {
-  text.setFont(font);
-  return *this;
+// Sinks
+entt::sink<Button::sig_t> Button::onMousePressed() {
+  return onMousePressedSignal;
 }
 
-Button& Button::setText(const sf::String& text) {
-  this->text.setString(text);
-  return *this;
+entt::sink<Button::sig_t> Button::onMouseReleased() {
+  return onMouseReleasedSignal;
 }
 
-Button& Button::setTextSize(unsigned int textSize) {
-  text.setCharacterSize(textSize);
-  return *this;
-}
-
-Button& Button::setTextColor(sf::Color color) {
-  text.setFillColor(color);
-  return *this;
-}
-
-Button& Button::setIdleColor(sf::Color color) {
-  idleColor = color;
-  return *this;
-}
-
-Button& Button::setHoverColor(sf::Color color) {
-  hoverColor = color;
-  return *this;
-}
-
-Button& Button::setActiveColor(sf::Color color) {
-  activeColor = color;
-  return *this;
-}
-
-Button& Button::setOnMousePressed(Button::hook_t hook) {
-  onMousePressed_ = hook;
-  return *this;
-}
-
-Button& Button::setOnMouseReleased(Button::hook_t hook) {
-  onMouseReleased_ = hook;
-  return *this;
-}
-
-Button& Button::setOnClick(Button::hook_t hook) {
-  onClick_ = hook;
-  return *this;
-}
+entt::sink<Button::sig_t> Button::onClick() { return onClickSignal; }
 
 // Functionality
-void Button::handleEvent(sf::Event event) {
-  if (const auto* mouseMoved = event.getIf<sf::Event::MouseMoved>()) {
-    if (pointInside(mouseMoved->position)) {
-      shape.setFillColor(pressed ? activeColor : hoverColor);
-    } else {
-      pressed = false;
-      shape.setFillColor(idleColor);
-    }
-  }
-  if (const auto* mousePressed = event.getIf<sf::Event::MouseButtonPressed>()) {
-    if (pointInside(mousePressed->position)) {
-      if (onMousePressed_) onMousePressed_();
-      shape.setFillColor(activeColor);
-      pressed = true;
-    }
-  }
-  if (const auto* mouseReleased = event.getIf<sf::Event::MouseButtonReleased>();
-      mouseReleased && pointInside(mouseReleased->position)) {
-    if (pointInside(mouseReleased->position)) {
-      if (onMouseReleased_) onMouseReleased_();
-      if (pressed && onClick_) {
-        onClick_();
-      }
-      pressed = false;
-      shape.setFillColor(hoverColor);
-    }
-  }
-}
-
 void Button::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   states.transform *= getTransform();
   target.draw(shape, states);
@@ -113,6 +57,37 @@ sf::FloatRect Button::getLocalBounds() { return shape.getLocalBounds(); }
 
 sf::FloatRect Button::getGlobalBounds() {
   return getTransform().transformRect(shape.getLocalBounds());
+}
+
+// Listeners
+void Button::onMouseMovedListener(sf::Event::MouseMoved mouseMoved) {
+  if (pointInside(mouseMoved.position)) {
+    shape.setFillColor(pressed ? activeColor : hoverColor);
+  } else {
+    pressed = false;
+    shape.setFillColor(idleColor);
+  }
+}
+
+void Button::onMouseButtonPressedListener(
+    sf::Event::MouseButtonPressed mouseButtonPressed) {
+  if (pointInside(mouseButtonPressed.position)) {
+    onMousePressedSignal.publish();
+    shape.setFillColor(activeColor);
+    pressed = true;
+  }
+}
+
+void Button::onMouseButtonReleasedListener(
+    sf::Event::MouseButtonReleased mouseButtonReleased) {
+  if (pointInside(mouseButtonReleased.position)) {
+    onMouseReleasedSignal.publish();
+    if (pressed) {
+      onClickSignal.publish();
+    }
+    pressed = false;
+    shape.setFillColor(hoverColor);
+  }
 }
 
 // Helpers

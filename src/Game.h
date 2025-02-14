@@ -4,13 +4,17 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
+#include <cstddef>
+#include <cstdlib>
+#include <entt/core/fwd.hpp>
 #include <entt/entt.hpp>
 #include <list>
 #include <memory>
+#include <utility>
 
 #include "ResourceLoader.h"
 #include "State.h"
-#include "System/EventHandlerSystem.h"
+#include "System/BulletSystem.h"
 #include "System/MovementSystem.h"
 #include "System/PlayerSystem.h"
 #include "System/RenderSystem.h"
@@ -26,7 +30,22 @@ class Game {
   static sf::RenderWindow& getWindow();
   static keybinds_t& getKeybinds();
   static entt::registry& getRegistry();
+  static entt::dispatcher& getDispatcher();
 
+  template <typename Resource, typename... Args>
+  static entt::resource<Resource> load(
+      std::tuple<entt::id_type, Args...> args) {
+    return load_impl<Resource>(args, std::index_sequence_for<Args...>{});
+  }
+
+ private:
+  template <typename Resource, typename... Args, std::size_t... I>
+  static entt::resource<Resource> load_impl(
+      std::tuple<entt::id_type, Args...> args, std::index_sequence<I...>) {
+    return load<Resource>(std::get<0>(args), std::get<I + 1>(args)...);
+  }
+
+ public:
   template <typename Resource, typename... Args>
   static entt::resource<Resource> load(entt::id_type id, Args&&... args) {
     return instance_.getCache<Resource>()
@@ -93,17 +112,18 @@ class Game {
   sf::RenderWindow window;
   keybinds_t keybinds;
   entt::registry registry;
+  entt::dispatcher sfml_event_dispatcher;
 
   // Resource management
   entt::dense_map<entt::id_type, entt::any> caches;
   retained_t retained;
 
   // Systems
-  EventHandlerSystem event_handler_system;
   RenderSystem render_system;
   SoundSystem sound_system;
   MovementSystem movement_system;
   PlayerSystem player_system;
+  BulletSystem bullet_system;
 
   static const keybinds_t default_keybinds;
 

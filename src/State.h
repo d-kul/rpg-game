@@ -3,9 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
 #include <memory>
-#include <utility>
 
-#include "Component/DrawableComponent.h"
 #include "utility.h"
 
 class State {
@@ -18,25 +16,10 @@ class State {
   virtual void exit();
 
   // Functionality
-  virtual void render();
-  virtual void handleEvent(const sf::Event& event);
-  std::unique_ptr<State> getNext();
+  virtual void update();
 
  protected:
-  entt::entity create();
-
-  template <typename T, typename... Args>
-  T& emplace(Args&&... args) {
-    return registry.emplace<T>(entities.emplace_back(registry.create()),
-                               std::forward<Args>(args)...);
-  }
-
-  template <typename T, typename... Args>
-  T& emplaceDrawable(Args&&... args) {
-    auto entity = entities.emplace_back(registry.create());
-    registry.emplace<DrawableComponent>(entity);
-    return registry.emplace<T>(entity, std::forward<Args>(args)...);
-  }
+  entt::entity create_entity();
 
   // Bindings
   keybinds_t& keybinds;
@@ -45,5 +28,7 @@ class State {
 
   // Members
   std::vector<entt::entity> entities;
+
+ public:
   std::unique_ptr<State> next_state;
 };

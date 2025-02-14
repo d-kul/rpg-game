@@ -1,11 +1,12 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <functional>
+#include <SFML/Window/Event.hpp>
+#include <entt/entt.hpp>
 
 class Button : public sf::Transformable, public sf::Drawable {
  private:
-  using hook_t = std::function<void()>;
+  using sig_t = entt::sigh<void()>;
 
  public:
   // Constructor, destructor
@@ -14,28 +15,26 @@ class Button : public sf::Transformable, public sf::Drawable {
          sf::Color idleColor = sf::Color::White,
          sf::Color hoverColor = sf::Color{200u, 200u, 200u},
          sf::Color activeColor = sf::Color{128u, 128u, 128u});
-  ~Button() = default;
+  ~Button();
 
-  // Builder methods
-  Button& setSize(sf::Vector2f size);
-  Button& setFont(const sf::Font& font);
-  Button& setText(const sf::String& text);
-  Button& setTextSize(unsigned int textSize);
-  Button& setTextColor(sf::Color color);
-  Button& setIdleColor(sf::Color color);
-  Button& setHoverColor(sf::Color color);
-  Button& setActiveColor(sf::Color color);
-  Button& setOnMousePressed(hook_t hook);
-  Button& setOnMouseReleased(hook_t hook);
-  Button& setOnClick(hook_t hook);
+  // Sinks
+  entt::sink<sig_t> onMousePressed();
+  entt::sink<sig_t> onMouseReleased();
+  entt::sink<sig_t> onClick();
 
   // Functionality
-  void handleEvent(sf::Event event);
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   sf::FloatRect getLocalBounds();
   sf::FloatRect getGlobalBounds();
 
  private:
+  // Listeners
+  void onMouseMovedListener(sf::Event::MouseMoved mouseMoved);
+  void onMouseButtonPressedListener(
+      sf::Event::MouseButtonPressed mouseButtonPressed);
+  void onMouseButtonReleasedListener(
+      sf::Event::MouseButtonReleased mouseButtonReleased);
+
   // Helpers
   bool pointInside(sf::Vector2i point);
 
@@ -45,6 +44,6 @@ class Button : public sf::Transformable, public sf::Drawable {
   sf::Text text;
   sf::Color idleColor, hoverColor, activeColor;
 
-  // Hooks
-  hook_t onMousePressed_, onMouseReleased_, onClick_;
+  // Signals
+  sig_t onMousePressedSignal, onMouseReleasedSignal, onClickSignal;
 };

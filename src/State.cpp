@@ -18,12 +18,8 @@ void State::exit() {}
 void State::enter() {}
 
 // Functionality
-void State::render() {}
+void State::update() {}
 
-void State::handleEvent(const sf::Event& event) {}
-
-std::unique_ptr<State> State::getNext() { return std::move(next_state); }
-
-entt::entity State::create() {
+entt::entity State::create_entity() {
   return entities.emplace_back(registry.create());
 }

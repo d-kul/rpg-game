@@ -5,5 +5,11 @@
 
 class MovementSystem {
  public:
-  void update(entt::registry& registry, sf::Time dt) const;
+  MovementSystem();
+  ~MovementSystem();
+
+  void update(sf::Time dt) const;
+
+ private:
+  entt::registry& registry;
 };

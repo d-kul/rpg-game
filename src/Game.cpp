@@ -1,7 +1,6 @@
 #include "Game.h"
 
 #include <SFML/System/Time.hpp>
-#include <algorithm>
 #include <optional>
 
 #include "Config.h"
@@ -16,6 +15,10 @@ sf::RenderWindow& Game::getWindow() { return instance_.window; }
 keybinds_t& Game::getKeybinds() { return instance_.keybinds; }
 
 entt::registry& Game::getRegistry() { return instance_.registry; }
+
+entt::dispatcher& Game::getDispatcher() {
+  return instance_.sfml_event_dispatcher;
+}
 
 void Game::release(retained_t::iterator it) { instance_.retained.erase(it); }
 
@@ -78,7 +81,8 @@ void Game::initRegistry() {}
 void Game::initState() {
   state = std::make_unique<MainMenuState>();
   state->enter();
-  registry.sort<DrawableComponent>(std::less<DrawableComponent>{});
+  render_system.subscribe();
+  render_system.sortElements();
 }
 
 // Constructors, destructor
@@ -90,6 +94,7 @@ Game::Game() {
 }
 
 Game::~Game() {
+  render_system.unsubscribe();
   state->exit();
   state.reset();
   retained.clear();
@@ -102,29 +107,33 @@ void Game::handleEvents() {
     if (event->is<sf::Event::Closed>()) {
       window.close();
     }
-    state->handleEvent(*event);
-    event_handler_system.handleEvent(registry, *event);
+    event->visit([&](auto&& event) {
+      sfml_event_dispatcher.enqueue<decltype(event)>(event);
+    });
   }
+  sfml_event_dispatcher.update();
 }
 
 void Game::update(sf::Time dt) {
-  sound_system.clearStopped(registry);
+  sound_system.clearStopped();
   handleEvents();
-  player_system.update(registry, dt);
-  movement_system.update(registry, dt);
-  if (auto next_state = state->getNext()) {
+  player_system.update(dt);
+  movement_system.update(dt);
+  state->update();
+  if (state->next_state) {
+    render_system.unsubscribe();
     state->exit();
-    sound_system.clearAll(registry);
-    state = std::move(next_state);
+    sound_system.clearAll();
+    state = std::move(state->next_state);
     state->enter();
-    registry.sort<DrawableComponent>(std::less<DrawableComponent>{});
+    render_system.subscribe();
+    render_system.sortElements();
   }
 }
 
 void Game::render() {
   window.clear();
-  state->render();
-  render_system.render(registry, window);
+  render_system.render(window);
   window.display();
 }
 

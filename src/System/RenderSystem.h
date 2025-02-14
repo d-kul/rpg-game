@@ -5,5 +5,17 @@
 
 class RenderSystem {
  public:
-  void render(entt::registry& registry, sf::RenderTarget& target) const;
+  RenderSystem();
+  ~RenderSystem();
+
+  void subscribe() const;
+  void unsubscribe() const;
+
+  void render(sf::RenderTarget& target) const;
+
+  // Listeners
+  void sortElements() const;
+
+ private:
+  entt::registry& registry;
 };
