@@ -1,14 +1,14 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <entt/entt.hpp>
-#include <memory>
 
 #include "utility.h"
 
 class State {
  public:
-  State();
+  // Constructors, destructor
+  State(const State& other);
+  State(keybinds_t& keybinds, sf::RenderWindow& window);
   virtual ~State();
 
   // State lifetime
@@ -16,19 +16,14 @@ class State {
   virtual void exit();
 
   // Functionality
-  virtual void update();
+  virtual void update(sf::Time dt);
+  virtual void render();
 
  protected:
-  entt::entity create_entity();
-
   // Bindings
   keybinds_t& keybinds;
   sf::RenderWindow& window;
-  entt::registry& registry;
-
-  // Members
-  std::vector<entt::entity> entities;
 
  public:
-  std::unique_ptr<State> next_state;
+  State* next_state;
 };

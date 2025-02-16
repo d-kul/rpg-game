@@ -1,97 +1,107 @@
 #include "GameState.h"
 
-#include <SFML/Audio/SoundBuffer.hpp>
-#include <SFML/Window/Keyboard.hpp>
-#include <SFML/Window/Mouse.hpp>
 #include <iostream>
 #include <sstream>
 
-#include "Component/PlayerComponent.h"
-#include "Component/SoundComponent.h"
-#include "Game.h"
 #include "State/MainMenuState.h"
-
-using namespace entt::literals;
 
 // Lifetime management
 void GameState::loadResources() {
-  background_texture = Game::retain<sf::Texture>(
-      "textures/teto_plush"_hs, "resources/images/teto_plush.png");
+  background_texture = new sf::Texture("resources/images/teto_plush.png");
   background_texture->setRepeated(true);
-  font =
-      Game::retain<sf::Font>("fonts/papyrus"_hs, "resources/fonts/papyrus.ttf");
-  mono_font = Game::retain<sf::Font>("fonts/DroidSansMono"_hs,
-                                     "resources/fonts/DroidSansMono.ttf");
-  music = Game::retain<sf::Music>("music/Teto Kasane Teto"_hs,
-                                  "resources/music/Teto Kasane Teto.ogg");
+  font = new sf::Font("resources/fonts/papyrus.ttf");
+  mono_font = new sf::Font("resources/fonts/DroidSansMono.ttf");
+  music = new sf::Music("resources/music/Teto Kasane Teto.ogg");
   music->setLooping(true);
 }
 
 void GameState::loadAssets() {
-  background = &registry.emplace<sf::RectangleShape>(create_entity());
-  background->setSize(sf::Vector2f{window.getSize()});
-  background->setTexture(&*background_texture);
-  background->setTextureRect(
+  background.setSize(sf::Vector2f{window.getSize()});
+  background.setTexture(background_texture);
+  background.setTextureRect(
       sf::IntRect{{0u, 0u}, sf::Vector2i{window.getSize()}});
 
-  auto player = create_entity();
-  registry.emplace<PlayerComponent>(player);
+  // TODO: Player...
+  // auto player = create_entity();
+  // registry.emplace<PlayerComponent>(player);
 
-  auto& text = registry.emplace<sf::Text>(create_entity(), *font,
-                                          "game design is my passion", 40);
-  text.setFillColor(sf::Color::Green);
-  text.setOutlineColor(sf::Color::Blue);
-  text.setOutlineThickness(3.f);
-  text.setStyle(sf::Text::Bold);
-  text.setPosition({80.f, 400.f});
+  main_text = new sf::Text(*font, "game design is my passion", 40);
+  main_text->setFillColor(sf::Color::Green);
+  main_text->setOutlineColor(sf::Color::Blue);
+  main_text->setOutlineThickness(3.f);
+  main_text->setStyle(sf::Text::Bold);
+  main_text->setPosition({80.f, 400.f});
 
-  sounds_text = &registry.emplace<sf::Text>(create_entity(), *font);
+  sounds_text = new sf::Text(*font);
   sounds_text->setFillColor(sf::Color::Green);
   sounds_text->setOutlineColor(sf::Color::Blue);
   sounds_text->setOutlineThickness(2.f);
   setText();
 
-  mouse_text = &registry.emplace<sf::Text>(create_entity(), *mono_font, "", 20);
+  mouse_text = new sf::Text(*mono_font, "", 20);
   mouse_text->setFillColor(sf::Color::White);
   mouse_text->setOutlineColor(sf::Color::Black);
   mouse_text->setOutlineThickness(2.f);
-
-  auto& dispatcher = Game::getDispatcher();
-  dispatcher.sink<sf::Event::KeyReleased>().connect<&GameState::onKeyReleased>(
-      *this);
-  registry.on_construct<SoundComponent>().connect<&GameState::onSoundConstruct>(
-      *this);
-  registry.on_destroy<SoundComponent>().connect<&GameState::onSoundDestroy>(
-      *this);
 }
+
+void GameState::unloadResources() {
+  delete music;
+  delete mono_font;
+  delete font;
+  delete background_texture;
+}
+
+void GameState::unloadAssets() {
+  delete mouse_text;
+  delete sounds_text;
+  delete main_text;
+}
+
+// Constructors, destructor
+GameState::GameState(const State& other)
+    : State(other) {}
+
+GameState::GameState(keybinds_t& keybinds, sf::RenderWindow& window)
+    : State(keybinds, window) {}
 
 // State lifetime
 void GameState::enter() {
   std::cout << "GameState::enter()" << '\n';
   loadResources();
   loadAssets();
+  // TODO: Event listeners...
+  // auto& dispatcher = Game::getDispatcher();
+  // dispatcher.sink<sf::Event::KeyReleased>().connect<&GameState::onKeyReleased>(
+  //     *this);
+  // registry.on_construct<SoundComponent>().connect<&GameState::onSoundConstruct>(
+  //     *this);
+  // registry.on_destroy<SoundComponent>().connect<&GameState::onSoundDestroy>(
+  //     *this);
   music->play();
 }
 
 void GameState::exit() {
   std::cout << "GameState::exit()" << '\n';
-  auto& dispatcher = Game::getDispatcher();
-  dispatcher.sink<sf::Event::KeyReleased>()
-      .disconnect<&GameState::onKeyReleased>(*this);
-  registry.on_construct<SoundComponent>()
-      .disconnect<&GameState::onSoundConstruct>(*this);
-  registry.on_destroy<SoundComponent>().disconnect<&GameState::onSoundDestroy>(
-      *this);
   music->stop();
+  // TODO: Event listeners...
+  // auto& dispatcher = Game::getDispatcher();
+  // dispatcher.sink<sf::Event::KeyReleased>()
+  //     .disconnect<&GameState::onKeyReleased>(*this);
+  // registry.on_construct<SoundComponent>()
+  //     .disconnect<&GameState::onSoundConstruct>(*this);
+  // registry.on_destroy<SoundComponent>().disconnect<&GameState::onSoundDestroy>(
+  //     *this);
+  unloadAssets();
+  unloadResources();
 }
 
 // Functionality
-void GameState::update() {
+void GameState::update(sf::Time dt) {
   auto top_left = window.mapPixelToCoords({0, 0});
   sounds_text->setPosition(top_left);
-  background->setPosition(top_left);
-  background->setTextureRect(
-      sf::IntRect{sf::FloatRect{top_left, background->getSize()}});
+  background.setPosition(top_left);
+  background.setTextureRect(
+      sf::IntRect{sf::FloatRect{top_left, background.getSize()}});
 
   auto pos_window = sf::Mouse::getPosition(window);
   auto pos_view = window.mapPixelToCoords(pos_window);
@@ -104,6 +114,13 @@ void GameState::update() {
   mouse_text->setString(ss.str());
 }
 
+void GameState::render() {
+  window.draw(background);
+  window.draw(*main_text);
+  window.draw(*sounds_text);
+  window.draw(*main_text);
+}
+
 // Helpers
 void GameState::setText() {
   sounds_text->setString("things: " + std::to_string(sounds));
@@ -112,17 +129,18 @@ void GameState::setText() {
 // Listeners
 void GameState::onKeyReleased(sf::Event::KeyReleased keyReleased) {
   if (keyReleased.code == keybinds["QUIT"]) {
-    next_state = std::make_unique<MainMenuState>();
+    next_state = new MainMenuState(*this);
   }
 }
 
-void GameState::onSoundConstruct(entt::registry& registry,
-                                 entt::entity entity) {
-  ++sounds;
-  setText();
-}
-
-void GameState::onSoundDestroy(entt::registry& registry, entt::entity entity) {
-  --sounds;
-  setText();
-}
+// TODO: ???
+// void GameState::onSoundConstruct(entt::registry& registry,
+//                                  entt::entity entity) {
+//   ++sounds;
+//   setText();
+// }
+// 
+// void GameState::onSoundDestroy(entt::registry& registry, entt::entity entity) {
+//   --sounds;
+//   setText();
+// }

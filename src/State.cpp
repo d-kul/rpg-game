@@ -1,25 +1,17 @@
 #include "State.h"
 
-#include "Game.h"
+State::State(const State& other)
+    : keybinds(other.keybinds), window(other.window) {}
 
-State::State()
-    : keybinds(Game::getKeybinds()),
-      window(Game::getWindow()),
-      registry(Game::getRegistry()) {}
+State::State(keybinds_t& keybinds, sf::RenderWindow& window)
+    : keybinds(keybinds), window(window) {}
 
-State::~State() {
-  for (auto entity : entities) {
-    registry.destroy(entity);
-  }
-}
+State::~State() {}
 
 // State lifetime
 void State::exit() {}
 void State::enter() {}
 
 // Functionality
-void State::update() {}
-
-entt::entity State::create_entity() {
-  return entities.emplace_back(registry.create());
-}
+void State::update(sf::Time dt) {}
+void State::render() {}

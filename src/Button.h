@@ -2,25 +2,27 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Event.hpp>
-#include <entt/entt.hpp>
+#include <functional>
+#include <vector>
 
 class Button : public sf::Transformable, public sf::Drawable {
  private:
-  using sig_t = entt::sigh<void()>;
+  using sig_t = std::vector<std::function<void()>>;
 
  public:
-  // Constructor, destructor
-  Button(sf::Vector2f size, const sf::Font& font, sf::String text = "",
-         unsigned int textSize = 30, sf::Color textColor = sf::Color::Black,
+  // Constructors, destructor
+  Button(sf::RenderWindow& window, const sf::Font& font, sf::Vector2f size = {},
+         sf::String text = "", unsigned int textSize = 30,
+         sf::Color textColor = sf::Color::Black,
          sf::Color idleColor = sf::Color::White,
          sf::Color hoverColor = sf::Color{200u, 200u, 200u},
          sf::Color activeColor = sf::Color{128u, 128u, 128u});
   ~Button();
 
-  // Sinks
-  entt::sink<sig_t> onMousePressed();
-  entt::sink<sig_t> onMouseReleased();
-  entt::sink<sig_t> onClick();
+  // Signals
+  sig_t& onMousePressed();
+  sig_t& onMouseReleased();
+  sig_t& onClick();
 
   // Functionality
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -37,6 +39,9 @@ class Button : public sf::Transformable, public sf::Drawable {
 
   // Helpers
   bool pointInside(sf::Vector2i point);
+
+  // Bindings
+  sf::RenderWindow& window;
 
   // Members
   bool pressed = false;

@@ -1,0 +1,35 @@
+x singleton game instance access
+x game states
+x entity component system
+x player character
+x sfml event dispatcher
+x okay sound system
+x okay render system
+x resource manager (in game class)
+x ditch the EnTT dependency because of the time crunch
+resource manager separate class
+sprite sheet support
+sprite animation
+tile map
+snap entities to grid
+player interaction with entites
+dialog box
+x button class
+button component
+ui component-based library
+draw layers
+settings menu
+x loading settings
+saving settings
+scenes
+moving between scenes (inside the state)
+cutscenes
+loading scenes
+saving scenes
+level editor
+build for multiple platforms
+testing
+*text animation
+*embed resources into binary
+*ui editor
+*battle system
