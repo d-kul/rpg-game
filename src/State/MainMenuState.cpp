@@ -33,23 +33,25 @@ void MainMenuState::loadAssets() {
 
   start_button =
       new Button(window, *mono_font, sf::Vector2f{200.f, 70.f}, "Start game");
+  start_button->hookListeners(eventHandler);
   start_button->setOrigin(start_button->getGlobalBounds().getCenter());
   start_button->setPosition(screen_middle + sf::Vector2f{0.f, -80.f});
-  start_button->onClick().emplace_back(
-      std::bind(&MainMenuState::onStart, this));
+  start_button->onClick().subscribe(std::bind(&MainMenuState::onStart, this));
 
   settings_button =
       new Button(window, *mono_font, sf::Vector2f{200.f, 70.f}, "Settings");
+  settings_button->hookListeners(eventHandler);
   settings_button->setOrigin(settings_button->getGlobalBounds().getCenter());
   settings_button->setPosition(screen_middle + sf::Vector2f{0.f, 0.f});
-  settings_button->onClick().emplace_back(
+  settings_button->onClick().subscribe(
       std::bind(&MainMenuState::onSettings, this));
 
   quit_button =
       new Button(window, *mono_font, sf::Vector2f{200.f, 70.f}, "Quit");
+  quit_button->hookListeners(eventHandler);
   quit_button->setOrigin(quit_button->getGlobalBounds().getCenter());
   quit_button->setPosition(screen_middle + sf::Vector2f{0.f, 80.f});
-  quit_button->onClick().emplace_back(std::bind(&MainMenuState::onQuit, this));
+  quit_button->onClick().subscribe(std::bind(&MainMenuState::onQuit, this));
 }
 
 void MainMenuState::unloadResources() {
@@ -68,8 +70,9 @@ void MainMenuState::unloadAssets() {
 // Constructors, destructor
 MainMenuState::MainMenuState(const State& other) : State(other) {}
 
-MainMenuState::MainMenuState(keybinds_t& keybinds, sf::RenderWindow& window)
-    : State(keybinds, window) {}
+MainMenuState::MainMenuState(keybinds_t& keybinds, sf::RenderWindow& window,
+                             EventHandler& eventHandler)
+    : State(keybinds, window, eventHandler) {}
 
 // State lifetime
 void MainMenuState::enter() {

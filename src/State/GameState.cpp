@@ -1,5 +1,6 @@
 #include "GameState.h"
 
+#include <SFML/Window/Event.hpp>
 #include <iostream>
 #include <sstream>
 
@@ -58,21 +59,20 @@ void GameState::unloadAssets() {
 }
 
 // Constructors, destructor
-GameState::GameState(const State& other)
-    : State(other) {}
+GameState::GameState(const State& other) : State(other) {}
 
-GameState::GameState(keybinds_t& keybinds, sf::RenderWindow& window)
-    : State(keybinds, window) {}
+GameState::GameState(keybinds_t& keybinds, sf::RenderWindow& window,
+                     EventHandler& eventHandler)
+    : State(keybinds, window, eventHandler) {}
 
 // State lifetime
 void GameState::enter() {
   std::cout << "GameState::enter()" << '\n';
   loadResources();
   loadAssets();
+  conn = eventHandler.sink<sf::Event::KeyReleased>().subscribe(
+      std::bind(&GameState::onKeyReleased, this, std::placeholders::_1));
   // TODO: Event listeners...
-  // auto& dispatcher = Game::getDispatcher();
-  // dispatcher.sink<sf::Event::KeyReleased>().connect<&GameState::onKeyReleased>(
-  //     *this);
   // registry.on_construct<SoundComponent>().connect<&GameState::onSoundConstruct>(
   //     *this);
   // registry.on_destroy<SoundComponent>().connect<&GameState::onSoundDestroy>(
@@ -83,10 +83,8 @@ void GameState::enter() {
 void GameState::exit() {
   std::cout << "GameState::exit()" << '\n';
   music->stop();
+  conn.disconnect();
   // TODO: Event listeners...
-  // auto& dispatcher = Game::getDispatcher();
-  // dispatcher.sink<sf::Event::KeyReleased>()
-  //     .disconnect<&GameState::onKeyReleased>(*this);
   // registry.on_construct<SoundComponent>()
   //     .disconnect<&GameState::onSoundConstruct>(*this);
   // registry.on_destroy<SoundComponent>().disconnect<&GameState::onSoundDestroy>(
@@ -139,8 +137,9 @@ void GameState::onKeyReleased(sf::Event::KeyReleased keyReleased) {
 //   ++sounds;
 //   setText();
 // }
-// 
-// void GameState::onSoundDestroy(entt::registry& registry, entt::entity entity) {
+//
+// void GameState::onSoundDestroy(entt::registry& registry, entt::entity entity)
+// {
 //   --sounds;
 //   setText();
 // }

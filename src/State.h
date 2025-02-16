@@ -2,13 +2,15 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "utility.h"
+#include "Core/utility.h"
+#include "EventHandler.h"
 
 class State {
  public:
   // Constructors, destructor
-  State(const State& other);
-  State(keybinds_t& keybinds, sf::RenderWindow& window);
+  State(const State& other) = default;
+  State(keybinds_t& keybinds, sf::RenderWindow& window,
+        EventHandler& eventHandler);
   virtual ~State();
 
   // State lifetime
@@ -23,7 +25,8 @@ class State {
   // Bindings
   keybinds_t& keybinds;
   sf::RenderWindow& window;
+  EventHandler& eventHandler;
 
  public:
-  State* next_state;
+  State* next_state = nullptr;
 };

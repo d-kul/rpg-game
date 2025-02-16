@@ -5,8 +5,9 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
+#include "Core/utility.h"
+#include "EventHandler.h"
 #include "State.h"
-#include "utility.h"
 
 class Game {
  private:
@@ -36,6 +37,7 @@ class Game {
 
   State* state = nullptr;
   sf::Clock clock;
+  EventHandler event_handler;
 
   keybinds_t keybinds;
   static const keybinds_t default_keybinds;

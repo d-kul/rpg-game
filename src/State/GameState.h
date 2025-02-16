@@ -2,6 +2,7 @@
 
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Event.hpp>
 
 #include "State.h"
 
@@ -16,7 +17,8 @@ class GameState : public State {
  public:
   // Constructors, destructor
   GameState(const State& other);
-  GameState(keybinds_t& keybinds, sf::RenderWindow& window);
+  GameState(keybinds_t& keybinds, sf::RenderWindow& window,
+            EventHandler& eventHandler);
 
   // State lifetime
   void enter() override;
@@ -45,4 +47,6 @@ class GameState : public State {
   sf::Text* sounds_text = nullptr;
   sf::Text* mouse_text = nullptr;
   std::size_t sounds = 0;
+
+  Signal<sf::Event::KeyReleased>::Connection conn;
 };

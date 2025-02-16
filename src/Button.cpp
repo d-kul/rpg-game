@@ -15,27 +15,9 @@ Button::Button(sf::RenderWindow& window, const sf::Font& font,
   this->text.setFillColor(textColor);
   this->text.setOrigin(this->text.getLocalBounds().getCenter());
   this->text.setPosition(shape.getLocalBounds().getCenter());
-
-  // TODO: events...
-  // auto& dispatcher = Game::getDispatcher();
-  // dispatcher.sink<sf::Event::MouseMoved>()
-  //     .connect<&Button::onMouseMovedListener>(*this);
-  // dispatcher.sink<sf::Event::MouseButtonPressed>()
-  //     .connect<&Button::onMouseButtonPressedListener>(*this);
-  // dispatcher.sink<sf::Event::MouseButtonReleased>()
-  //     .connect<&Button::onMouseButtonReleasedListener>(*this);
 }
 
-Button::~Button() {
-  // TODO: events...
-  // auto& dispatcher = Game::getDispatcher();
-  // dispatcher.sink<sf::Event::MouseMoved>()
-  //     .disconnect<&Button::onMouseMovedListener>(*this);
-  // dispatcher.sink<sf::Event::MouseButtonPressed>()
-  //     .disconnect<&Button::onMouseButtonPressedListener>(*this);
-  // dispatcher.sink<sf::Event::MouseButtonReleased>()
-  //     .disconnect<&Button::onMouseButtonReleasedListener>(*this);
-}
+Button::~Button() { unhookListeners(); }
 
 // Signals
 Button::sig_t& Button::onMousePressed() { return onMousePressedSignal; }
@@ -43,6 +25,23 @@ Button::sig_t& Button::onMousePressed() { return onMousePressedSignal; }
 Button::sig_t& Button::onMouseReleased() { return onMouseReleasedSignal; }
 
 Button::sig_t& Button::onClick() { return onClickSignal; }
+
+void Button::hookListeners(EventHandler& eventHandler) {
+  onMouseMovedConnection = eventHandler.sink<sf::Event::MouseMoved>().subscribe(
+      std::bind(&Button::onMouseMovedListener, this, std::placeholders::_1));
+  onMousePressedConnection =
+      eventHandler.sink<sf::Event::MouseButtonPressed>().subscribe(std::bind(
+          &Button::onMouseButtonPressedListener, this, std::placeholders::_1));
+  onMouseReleasedConnection =
+      eventHandler.sink<sf::Event::MouseButtonReleased>().subscribe(std::bind(
+          &Button::onMouseButtonReleasedListener, this, std::placeholders::_1));
+}
+
+void Button::unhookListeners() {
+  if (onMouseMovedConnection) onMouseMovedConnection.disconnect();
+  if (onMousePressedConnection) onMousePressedConnection.disconnect();
+  if (onMouseReleasedConnection) onMouseReleasedConnection.disconnect();
+}
 
 // Functionality
 void Button::draw(sf::RenderTarget& target, sf::RenderStates states) const {
@@ -70,7 +69,7 @@ void Button::onMouseMovedListener(sf::Event::MouseMoved mouseMoved) {
 void Button::onMouseButtonPressedListener(
     sf::Event::MouseButtonPressed mouseButtonPressed) {
   if (pointInside(mouseButtonPressed.position)) {
-    for (auto& f : onMousePressedSignal) f();
+    onMousePressedSignal();
     shape.setFillColor(activeColor);
     pressed = true;
   }
@@ -79,9 +78,9 @@ void Button::onMouseButtonPressedListener(
 void Button::onMouseButtonReleasedListener(
     sf::Event::MouseButtonReleased mouseButtonReleased) {
   if (pointInside(mouseButtonReleased.position)) {
-    for (auto& f : onMouseReleasedSignal) f();
+    onMouseReleasedSignal();
     if (pressed) {
-      for (auto& f : onClickSignal) f();
+      onClickSignal();
     }
     pressed = false;
     shape.setFillColor(hoverColor);

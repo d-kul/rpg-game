@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <optional>
 
-#include "Config.h"
+#include "Core/Config.h"
 #include "State/MainMenuState.h"
 
 // Initialization
@@ -64,7 +64,7 @@ void Game::initKeybinds() {
 void Game::initRegistry() {}
 
 void Game::initState() {
-  state = new MainMenuState(keybinds, window);
+  state = new MainMenuState(keybinds, window, event_handler);
   state->enter();
 }
 
@@ -87,7 +87,8 @@ void Game::handleEvents() {
     if (event->is<sf::Event::Closed>()) {
       window.close();
     }
-    // TODO: Send events...
+    event->visit(
+        [&](auto&& event) { event_handler.sink<decltype(event)>()(event); });
   }
 }
 

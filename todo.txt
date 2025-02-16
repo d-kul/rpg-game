@@ -1,13 +1,13 @@
 x singleton game instance access
 x game states
-x entity component system
-x player character
-x sfml event dispatcher
-x okay sound system
-x okay render system
-x resource manager (in game class)
+x entity component system (ditched)
+x player character (ditched for now)
+x sfml event dispatcher (from EnTT; ditched for now)
+x okay sound system (ditched for now)
+x okay render system (ditched for now)
 x ditch the EnTT dependency because of the time crunch
-resource manager separate class
+x figure out how to handle events (again)
+resource manager class
 sprite sheet support
 sprite animation
 tile map

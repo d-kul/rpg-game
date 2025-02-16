@@ -2,12 +2,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Event.hpp>
-#include <functional>
-#include <vector>
+
+#include "Core/Signal.h"
+#include "EventHandler.h"
 
 class Button : public sf::Transformable, public sf::Drawable {
  private:
-  using sig_t = std::vector<std::function<void()>>;
+  using sig_t = Signal<>;
 
  public:
   // Constructors, destructor
@@ -23,6 +24,9 @@ class Button : public sf::Transformable, public sf::Drawable {
   sig_t& onMousePressed();
   sig_t& onMouseReleased();
   sig_t& onClick();
+
+  void hookListeners(EventHandler& eventHandler);
+  void unhookListeners();
 
   // Functionality
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -51,4 +55,8 @@ class Button : public sf::Transformable, public sf::Drawable {
 
   // Signals
   sig_t onMousePressedSignal, onMouseReleasedSignal, onClickSignal;
+
+  Signal<sf::Event::MouseMoved>::Connection onMouseMovedConnection;
+  Signal<sf::Event::MouseButtonPressed>::Connection onMousePressedConnection;
+  Signal<sf::Event::MouseButtonReleased>::Connection onMouseReleasedConnection;
 };

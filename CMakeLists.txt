@@ -14,20 +14,21 @@ FetchContent_Declare(SFML
 FetchContent_MakeAvailable(SFML)
 
 add_executable(main 
-  src/State/GameState.cpp
-  src/State/GameState.h
-  src/State/MainMenuState.cpp
-  src/State/MainMenuState.h
-  src/State.cpp
-  src/State.h
-  src/Button.cpp
+  src/Core/Signal.h
+  src/Core/Config.h
+  src/Core/Config.cpp
+  src/Core/utility.h
   src/Button.h
-  src/Config.cpp
-  src/Config.h
+  src/Button.cpp
+  src/State.h
+  src/State.cpp
+  src/State/GameState.h
+  src/State/GameState.cpp
+  src/State/MainMenuState.h
+  src/State/MainMenuState.cpp
+  src/Game.h
   src/Game.cpp
   src/Game_init.cpp
-  src/Game.h
-  src/utility.h
   src/main.cpp)
 target_include_directories(main PRIVATE src)
 target_compile_features(main PRIVATE cxx_std_17)

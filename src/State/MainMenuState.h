@@ -17,7 +17,8 @@ class MainMenuState : public State {
  public:
   // Constructors, destructor
   MainMenuState(const State& other);
-  MainMenuState(keybinds_t& keybinds, sf::RenderWindow& window);
+  MainMenuState(keybinds_t& keybinds, sf::RenderWindow& window,
+                EventHandler& eventHandler);
 
   // State lifetime
   void enter() override;

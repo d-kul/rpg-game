@@ -1,10 +1,8 @@
 #include "State.h"
 
-State::State(const State& other)
-    : keybinds(other.keybinds), window(other.window) {}
-
-State::State(keybinds_t& keybinds, sf::RenderWindow& window)
-    : keybinds(keybinds), window(window) {}
+State::State(keybinds_t& keybinds, sf::RenderWindow& window,
+             EventHandler& eventHandler)
+    : keybinds(keybinds), window(window), eventHandler(eventHandler) {}
 
 State::~State() {}
 
