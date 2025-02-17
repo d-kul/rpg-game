@@ -2,14 +2,24 @@
 
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
 #include "Core/utility.h"
 #include "EventHandler.h"
+#include "ResourceManager.h"
 #include "State.h"
 
 class Game {
+ public:
+  // Singleton interface
+  static Game& getInstance();
+  static sf::RenderWindow& getWindow();
+  static EventHandler& getEventHandler();
+  static keybinds_t& getKeybinds();
+  static ResourceManager& getResourceManager();
+
  private:
   // Initialization
   void initWindow();
@@ -17,7 +27,6 @@ class Game {
   void initRegistry();
   void initState();
 
- public:
   // Constructor, destructor
   Game();
   ~Game();
@@ -30,17 +39,19 @@ class Game {
   void run();
 
  private:
+  static Game instance;
+  static const keybinds_t default_keybinds;
+
   // Members
   bool fullscreen = false;
-  sf::ContextSettings context_settings;
+  sf::ContextSettings contextSettings;
   sf::RenderWindow window;
+  ResourceManager resourceManager;
 
   State* state = nullptr;
   sf::Clock clock;
-  EventHandler event_handler;
-
+  EventHandler eventHandler;
   keybinds_t keybinds;
-  static const keybinds_t default_keybinds;
 
  public:
   // Static members

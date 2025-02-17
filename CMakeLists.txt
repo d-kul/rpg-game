@@ -15,8 +15,11 @@ FetchContent_MakeAvailable(SFML)
 
 add_executable(main 
   src/Core/Signal.h
+  src/Core/ConnectionGuard.cpp
   src/Core/Config.h
   src/Core/Config.cpp
+  src/Core/Logger.h
+  src/Core/Logger.cpp
   src/Core/utility.h
   src/Button.h
   src/Button.cpp

@@ -1,23 +1,29 @@
 #include "MainMenuState.h"
 
+#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Window.hpp>
 #include <iostream>
 
 #include "Button.h"
+#include "Core/Logger.h"
 #include "Game.h"
 #include "State/GameState.h"
 
 // Lifetime management
 void MainMenuState::loadResources() {
-  font = new sf::Font("resources/fonts/papyrus.ttf");
-  mono_font = new sf::Font("resources/fonts/DroidSansMono.ttf");
-  background_texture = new sf::Texture("resources/images/pearto.png");
+  font = resourceManager.hold<sf::Font>("fonts/papyrus",
+                                        "resources/fonts/papyrus.ttf");
+  mono_font = resourceManager.hold<sf::Font>(
+      "fonts/DroidSansMono", "resources/fonts/DroidSansMono.ttf");
+  background_texture = resourceManager.hold<sf::Texture>(
+      "textures/pearto", "resources/images/pearto.png");
 }
 
 void MainMenuState::loadAssets() {
   background.setSize(sf::Vector2f{window.getSize()});
   background.setTexture(&*background_texture);
 
-  text = new sf::Text(*font, "", 40);
+  text = std::make_unique<sf::Text>(*font, "", 40);
   text->setPosition({20.f, 20.f});
   text->setFillColor(sf::Color::Black);
   auto& keys = Game::key_storage;
@@ -31,62 +37,34 @@ void MainMenuState::loadAssets() {
 
   auto screen_middle = sf::Vector2f{window.getSize()} * 0.5f;
 
-  start_button =
-      new Button(window, *mono_font, sf::Vector2f{200.f, 70.f}, "Start game");
-  start_button->hookListeners(eventHandler);
+  start_button = std::make_unique<Button>(*mono_font, sf::Vector2f{200.f, 70.f},
+                                          "Start game");
   start_button->setOrigin(start_button->getGlobalBounds().getCenter());
   start_button->setPosition(screen_middle + sf::Vector2f{0.f, -80.f});
-  start_button->onClick().subscribe(std::bind(&MainMenuState::onStart, this));
+  start_button->onClick().bind(&MainMenuState::onStart, this);
 
-  settings_button =
-      new Button(window, *mono_font, sf::Vector2f{200.f, 70.f}, "Settings");
-  settings_button->hookListeners(eventHandler);
+  settings_button = std::make_unique<Button>(
+      *mono_font, sf::Vector2f{200.f, 70.f}, "Settings");
   settings_button->setOrigin(settings_button->getGlobalBounds().getCenter());
   settings_button->setPosition(screen_middle + sf::Vector2f{0.f, 0.f});
-  settings_button->onClick().subscribe(
-      std::bind(&MainMenuState::onSettings, this));
+  settings_button->onClick().bind(&MainMenuState::onSettings, this);
 
   quit_button =
-      new Button(window, *mono_font, sf::Vector2f{200.f, 70.f}, "Quit");
-  quit_button->hookListeners(eventHandler);
+      std::make_unique<Button>(*mono_font, sf::Vector2f{200.f, 70.f}, "Quit");
   quit_button->setOrigin(quit_button->getGlobalBounds().getCenter());
   quit_button->setPosition(screen_middle + sf::Vector2f{0.f, 80.f});
-  quit_button->onClick().subscribe(std::bind(&MainMenuState::onQuit, this));
+  quit_button->onClick().bind(&MainMenuState::onQuit, this);
 }
-
-void MainMenuState::unloadResources() {
-  delete font;
-  delete mono_font;
-  delete background_texture;
-}
-
-void MainMenuState::unloadAssets() {
-  delete text;
-  delete start_button;
-  delete settings_button;
-  delete quit_button;
-}
-
-// Constructors, destructor
-MainMenuState::MainMenuState(const State& other) : State(other) {}
-
-MainMenuState::MainMenuState(keybinds_t& keybinds, sf::RenderWindow& window,
-                             EventHandler& eventHandler)
-    : State(keybinds, window, eventHandler) {}
 
 // State lifetime
 void MainMenuState::enter() {
-  std::cout << "MainMenuState::enter()" << '\n';
+  DEBUG("");
   loadResources();
   loadAssets();
   window.setView(window.getDefaultView());
 }
 
-void MainMenuState::exit() {
-  std::cout << "MainMenuState::exit()" << '\n';
-  unloadAssets();
-  unloadResources();
-}
+void MainMenuState::exit() { DEBUG(""); }
 
 // Functionality
 void MainMenuState::update(sf::Time dt) {}
@@ -100,8 +78,6 @@ void MainMenuState::render() {
 }
 
 // Listeners
-void MainMenuState::onStart() { next_state = new GameState(*this); }
-
+void MainMenuState::onStart() { next_state = new GameState{}; }
 void MainMenuState::onSettings() {}
-
 void MainMenuState::onQuit() { window.close(); }

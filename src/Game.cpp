@@ -7,6 +7,17 @@
 #include "Core/Config.h"
 #include "State/MainMenuState.h"
 
+// Singleton interface
+Game& Game::getInstance() { return instance; }
+
+sf::RenderWindow& Game::getWindow() { return instance.window; }
+
+EventHandler& Game::getEventHandler() { return instance.eventHandler; }
+
+keybinds_t& Game::getKeybinds() { return instance.keybinds; }
+
+ResourceManager& Game::getResourceManager() { return instance.resourceManager; }
+
 // Initialization
 void Game::initWindow() {
   // Load options from "window.ini" file
@@ -40,12 +51,12 @@ void Game::initWindow() {
   auto screen_middle =
       (sf::VideoMode::getDesktopMode().size - video_mode.size) / 2u;
 
-  context_settings.antiAliasingLevel = antialiasing_level;
+  contextSettings.antiAliasingLevel = antialiasing_level;
   window.create(
       video_mode, title,
       fullscreen ? sf::Style::None : sf::Style::Titlebar | sf::Style::Close,
       fullscreen ? sf::State::Fullscreen : sf::State::Windowed,
-      context_settings);
+      contextSettings);
   window.setFramerateLimit(framerate_limit);
   window.setVerticalSyncEnabled(vsync_enabled);
   if (!fullscreen) window.setPosition(sf::Vector2i{screen_middle});
@@ -64,7 +75,7 @@ void Game::initKeybinds() {
 void Game::initRegistry() {}
 
 void Game::initState() {
-  state = new MainMenuState(keybinds, window, event_handler);
+  state = new MainMenuState{};
   state->enter();
 }
 
@@ -88,7 +99,7 @@ void Game::handleEvents() {
       window.close();
     }
     event->visit(
-        [&](auto&& event) { event_handler.sink<decltype(event)>()(event); });
+        [&](auto&& event) { eventHandler.sink<decltype(event)>()(event); });
   }
 }
 

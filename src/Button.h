@@ -4,7 +4,6 @@
 #include <SFML/Window/Event.hpp>
 
 #include "Core/Signal.h"
-#include "EventHandler.h"
 
 class Button : public sf::Transformable, public sf::Drawable {
  private:
@@ -12,7 +11,7 @@ class Button : public sf::Transformable, public sf::Drawable {
 
  public:
   // Constructors, destructor
-  Button(sf::RenderWindow& window, const sf::Font& font, sf::Vector2f size = {},
+  Button(const sf::Font& font, sf::Vector2f size = {},
          sf::String text = "", unsigned int textSize = 30,
          sf::Color textColor = sf::Color::Black,
          sf::Color idleColor = sf::Color::White,
@@ -25,9 +24,6 @@ class Button : public sf::Transformable, public sf::Drawable {
   sig_t& onMouseReleased();
   sig_t& onClick();
 
-  void hookListeners(EventHandler& eventHandler);
-  void unhookListeners();
-
   // Functionality
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   sf::FloatRect getLocalBounds();
@@ -35,10 +31,10 @@ class Button : public sf::Transformable, public sf::Drawable {
 
  private:
   // Listeners
-  void onMouseMovedListener(sf::Event::MouseMoved mouseMoved);
-  void onMouseButtonPressedListener(
+  void onMouseMoved_l(sf::Event::MouseMoved mouseMoved);
+  void onMousePressed_l(
       sf::Event::MouseButtonPressed mouseButtonPressed);
-  void onMouseButtonReleasedListener(
+  void onMouseReleased_l(
       sf::Event::MouseButtonReleased mouseButtonReleased);
 
   // Helpers
@@ -54,9 +50,9 @@ class Button : public sf::Transformable, public sf::Drawable {
   sf::Color idleColor, hoverColor, activeColor;
 
   // Signals
-  sig_t onMousePressedSignal, onMouseReleasedSignal, onClickSignal;
+  sig_t onMousePressed_sig, onMouseReleased_sig, onClick_sig;
 
-  Signal<sf::Event::MouseMoved>::Connection onMouseMovedConnection;
-  Signal<sf::Event::MouseButtonPressed>::Connection onMousePressedConnection;
-  Signal<sf::Event::MouseButtonReleased>::Connection onMouseReleasedConnection;
+  ConnectionGuard onMouseMoved_cg;
+  ConnectionGuard onMousePressed_cg;
+  ConnectionGuard onMouseReleased_cg;
 };

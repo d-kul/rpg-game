@@ -11,15 +11,8 @@ class GameState : public State {
   // Lifetime management
   void loadResources();
   void loadAssets();
-  void unloadResources();
-  void unloadAssets();
 
  public:
-  // Constructors, destructor
-  GameState(const State& other);
-  GameState(keybinds_t& keybinds, sf::RenderWindow& window,
-            EventHandler& eventHandler);
-
   // State lifetime
   void enter() override;
   void exit() override;
@@ -36,17 +29,17 @@ class GameState : public State {
 
  private:
   // Resources
-  sf::Texture* background_texture = nullptr;
-  sf::Font* font = nullptr;
-  sf::Font* mono_font = nullptr;
-  sf::Music* music = nullptr;
+  std::shared_ptr<sf::Texture> background_texture;
+  std::shared_ptr<sf::Font> font;
+  std::shared_ptr<sf::Font> mono_font;
+  std::shared_ptr<sf::Music> music;
 
   // Members
   sf::RectangleShape background;
-  sf::Text* main_text = nullptr;
-  sf::Text* sounds_text = nullptr;
-  sf::Text* mouse_text = nullptr;
+  std::unique_ptr<sf::Text> main_text;
+  std::unique_ptr<sf::Text> sounds_text;
+  std::unique_ptr<sf::Text> mouse_text;
   std::size_t sounds = 0;
 
-  Signal<sf::Event::KeyReleased>::Connection conn;
+  ConnectionGuard onKeyReleased_cg;
 };

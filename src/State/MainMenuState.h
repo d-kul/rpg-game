@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
+#include <memory>
 
 #include "Button.h"
 #include "State.h"
@@ -11,15 +12,8 @@ class MainMenuState : public State {
   // Lifetime management
   void loadResources();
   void loadAssets();
-  void unloadResources();
-  void unloadAssets();
 
  public:
-  // Constructors, destructor
-  MainMenuState(const State& other);
-  MainMenuState(keybinds_t& keybinds, sf::RenderWindow& window,
-                EventHandler& eventHandler);
-
   // State lifetime
   void enter() override;
   void exit() override;
@@ -35,13 +29,12 @@ class MainMenuState : public State {
 
  private:
   // Resources
-  sf::Font* font = nullptr;
-  sf::Font* mono_font = nullptr;
-  sf::Texture* background_texture = nullptr;
+  std::shared_ptr<sf::Font> font;
+  std::shared_ptr<sf::Font> mono_font;
+  std::shared_ptr<sf::Texture> background_texture;
 
   // Members
   sf::RectangleShape background;
-  sf::Text* text = nullptr;
-  Button *start_button = nullptr, *settings_button = nullptr,
-         *quit_button = nullptr;
+  std::unique_ptr<sf::Text> text;
+  std::unique_ptr<Button> start_button, settings_button, quit_button;
 };

@@ -3,6 +3,35 @@
 #include <cassert>
 #include <functional>
 #include <list>
+#include <type_traits>
+
+namespace internal {
+class BaseConnection;
+}  // namespace internal
+
+class ConnectionGuard {
+ public:
+  ConnectionGuard() = default;
+  ConnectionGuard(const internal::BaseConnection& conn);
+  ConnectionGuard& operator=(const internal::BaseConnection& conn);
+  ~ConnectionGuard();
+  void disconnect();
+
+ private:
+  internal::BaseConnection* conn = nullptr;
+};
+
+namespace internal {
+class BaseConnection {
+ public:
+  virtual ~BaseConnection() {}
+  virtual void disconnect() = 0;
+
+ protected:
+  virtual BaseConnection* clone() const = 0;
+  friend class ConnectionGuard::ConnectionGuard;
+};
+}  // namespace internal
 
 // NOTE: reentrability stuff supported:
 // * calling other slots inside a slot
@@ -17,9 +46,17 @@ class Signal {
   using slot_t = std::function<void(Args...)>;
   using slots_t = std::list<slot_t>;
 
-  class Connection {
+  class Connection : public internal::BaseConnection {
    public:
     Connection() = default;
+
+    Connection(const Connection& other) : signal(other.signal), it(other.it) {}
+
+    Connection& operator=(const Connection& other) {
+      signal = other.signal;
+      it = other.it;
+      return *this;
+    }
 
     Connection(Connection&& other) : signal(other.signal), it(other.it) {}
 
@@ -44,19 +81,14 @@ class Signal {
     operator bool() { return signal; }
 
    private:
+    BaseConnection* clone() const { return new Connection(*this); }
+
     Signal* signal = nullptr;
     typename slots_t::iterator it;
   };
 
  public:
   Signal() = default;
-
-  // NOTE: This is a big fat hack to work around
-  //       std::any's CopyConstructible requirement
-  //       because it always defines a copy constructor
-  // Signal(const Signal&) {
-  //   assert(false && "signals cannot be copy-constructed");
-  // }
 
   ~Signal() {
     if (destroyed) *destroyed = true;
@@ -65,6 +97,25 @@ class Signal {
   Connection subscribe(slot_t slot) {
     assert(slot);
     return {this, slots.insert(slots.end(), slot)};
+  }
+
+  template <typename Class, typename = std::enable_if<sizeof...(Args) <= 5>>
+  Connection bind(void (Class::*ptr)(Args...), Class* instance) {
+    using namespace std::placeholders;
+    assert(instance);
+    if constexpr (sizeof...(Args) == 0) {
+      return subscribe(std::bind(ptr, instance));
+    } else if constexpr (sizeof...(Args) == 1) {
+      return subscribe(std::bind(ptr, instance, _1));
+    } else if constexpr (sizeof...(Args) == 2) {
+      return subscribe(std::bind(ptr, instance, _1, _2));
+    } else if constexpr (sizeof...(Args) == 3) {
+      return subscribe(std::bind(ptr, instance, _1, _2, _3));
+    } else if constexpr (sizeof...(Args) == 4) {
+      return subscribe(std::bind(ptr, instance, _1, _2, _3, _4));
+    } else {
+      return subscribe(std::bind(ptr, instance, _1, _2, _3, _4, _5));
+    }
   }
 
   void operator()(Args... args) const {

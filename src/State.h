@@ -4,13 +4,12 @@
 
 #include "Core/utility.h"
 #include "EventHandler.h"
+#include "ResourceManager.h"
 
 class State {
  public:
   // Constructors, destructor
-  State(const State& other) = default;
-  State(keybinds_t& keybinds, sf::RenderWindow& window,
-        EventHandler& eventHandler);
+  State();
   virtual ~State();
 
   // State lifetime
@@ -26,6 +25,7 @@ class State {
   keybinds_t& keybinds;
   sf::RenderWindow& window;
   EventHandler& eventHandler;
+  ResourceManager& resourceManager;
 
  public:
   State* next_state = nullptr;

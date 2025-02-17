@@ -1,8 +1,12 @@
 #include "State.h"
 
-State::State(keybinds_t& keybinds, sf::RenderWindow& window,
-             EventHandler& eventHandler)
-    : keybinds(keybinds), window(window), eventHandler(eventHandler) {}
+#include "Game.h"
+
+State::State()
+    : keybinds(Game::getKeybinds()),
+      window(Game::getWindow()),
+      eventHandler(Game::getEventHandler()),
+      resourceManager(Game::getResourceManager()) {}
 
 State::~State() {}
 
