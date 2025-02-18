@@ -6,7 +6,8 @@ State::State()
     : keybinds(Game::getKeybinds()),
       window(Game::getWindow()),
       eventHandler(Game::getEventHandler()),
-      resourceManager(Game::getResourceManager()) {}
+      resourceManager(Game::getResourceManager()),
+      audioManager(Game::getAudioManager()) {}
 
 State::~State() {}
 

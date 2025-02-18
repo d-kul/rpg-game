@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "AudioManager.h"
 #include "Core/utility.h"
 #include "EventHandler.h"
 #include "ResourceManager.h"
@@ -26,6 +27,7 @@ class State {
   sf::RenderWindow& window;
   EventHandler& eventHandler;
   ResourceManager& resourceManager;
+  AudioManager& audioManager;
 
  public:
   State* next_state = nullptr;

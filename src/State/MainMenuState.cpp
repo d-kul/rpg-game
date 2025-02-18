@@ -1,21 +1,16 @@
 #include "MainMenuState.h"
 
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Window.hpp>
-#include <iostream>
-
-#include "Button.h"
 #include "Core/Logger.h"
 #include "Game.h"
 #include "State/GameState.h"
 
 // Lifetime management
 void MainMenuState::loadResources() {
-  font = resourceManager.hold<sf::Font>("fonts/papyrus",
-                                        "resources/fonts/papyrus.ttf");
-  mono_font = resourceManager.hold<sf::Font>(
+  font = resourceManager.retain<sf::Font>("fonts/papyrus",
+                                          "resources/fonts/papyrus.ttf");
+  mono_font = resourceManager.retain<sf::Font>(
       "fonts/DroidSansMono", "resources/fonts/DroidSansMono.ttf");
-  background_texture = resourceManager.hold<sf::Texture>(
+  background_texture = resourceManager.retain<sf::Texture>(
       "textures/pearto", "resources/images/pearto.png");
 }
 
@@ -58,13 +53,13 @@ void MainMenuState::loadAssets() {
 
 // State lifetime
 void MainMenuState::enter() {
-  DEBUG("");
+  DEBUG("entering MainMenuState");
   loadResources();
   loadAssets();
   window.setView(window.getDefaultView());
 }
 
-void MainMenuState::exit() { DEBUG(""); }
+void MainMenuState::exit() { DEBUG("entering MainMenuState"); }
 
 // Functionality
 void MainMenuState::update(sf::Time dt) {}

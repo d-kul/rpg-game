@@ -4,7 +4,7 @@
 #include <SFML/Window.hpp>
 #include <memory>
 
-#include "Button.h"
+#include "UI/Button.h"
 #include "State.h"
 
 class MainMenuState : public State {

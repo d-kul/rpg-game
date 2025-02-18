@@ -2,10 +2,10 @@
 
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
+#include "AudioManager.h"
 #include "Core/utility.h"
 #include "EventHandler.h"
 #include "ResourceManager.h"
@@ -19,6 +19,7 @@ class Game {
   static EventHandler& getEventHandler();
   static keybinds_t& getKeybinds();
   static ResourceManager& getResourceManager();
+  static AudioManager& getAudioManager();
 
  private:
   // Initialization
@@ -47,6 +48,7 @@ class Game {
   sf::ContextSettings contextSettings;
   sf::RenderWindow window;
   ResourceManager resourceManager;
+  AudioManager audioManager;
 
   State* state = nullptr;
   sf::Clock clock;

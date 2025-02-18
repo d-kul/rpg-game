@@ -9,14 +9,17 @@ x game singleton
 x signal connection RAII guard
 x resource manager class
 x logger
-entity interface
-player entity
-sprite sheet support
+x entity interface
+x player entity
+x sound manager
+x tile set
+x tile map
+background entity
 sprite animation
-tile map
-snap entities to grid
+snap movement to grid
 player interaction with entites
 dialog box
+benchmarking
 x button class
 button component
 ui component-based library

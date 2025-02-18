@@ -21,8 +21,19 @@ add_executable(main
   src/Core/Logger.h
   src/Core/Logger.cpp
   src/Core/utility.h
-  src/Button.h
-  src/Button.cpp
+  src/EventHandler.h
+  src/UI/Button.h
+  src/UI/Button.cpp
+  src/AudioManager.h
+  src/AudioManager.cpp
+  src/ResourceManager.h
+  src/Resource/TileSet.h
+  src/Resource/TileSet.cpp
+  src/Entity.h
+  src/Entity/TileMap.h
+  src/Entity/TileMap.cpp
+  src/Entity/Player.h
+  src/Entity/Player.cpp
   src/State.h
   src/State.cpp
   src/State/GameState.h

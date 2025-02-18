@@ -24,7 +24,7 @@ void Logger::statusLine(const char* file, int line, const char* func,
       std::clog << "[ERROR] ";
       break;
   }
-  std::clog << file << ":" << line << ":" << func << " ";
+  std::clog << file << ":" << line << ":" << func << ": ";
 }
 
 Logger Logger::instance{};

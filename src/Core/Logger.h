@@ -47,10 +47,10 @@ class Logger {
   static Logger instance;
 };
 
-inline Logger::Level Debug = Logger::Level::Debug;
-inline Logger::Level Info = Logger::Level::Info;
-inline Logger::Level Warning = Logger::Level::Warning;
-inline Logger::Level Error = Logger::Level::Error;
+constexpr Logger::Level Debug = Logger::Level::Debug;
+constexpr Logger::Level Info = Logger::Level::Info;
+constexpr Logger::Level Warning = Logger::Level::Warning;
+constexpr Logger::Level Error = Logger::Level::Error;
 
 #define LOG(...) \
   Logger::getInstance().flog(__FILE__, __LINE__, __func__, __VA_ARGS__)

@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "Core/Config.h"
+#include "Core/Logger.h"
 #include "State/MainMenuState.h"
 
 // Singleton interface
@@ -17,6 +18,8 @@ EventHandler& Game::getEventHandler() { return instance.eventHandler; }
 keybinds_t& Game::getKeybinds() { return instance.keybinds; }
 
 ResourceManager& Game::getResourceManager() { return instance.resourceManager; }
+
+AudioManager& Game::getAudioManager() { return instance.audioManager; }
 
 // Initialization
 void Game::initWindow() {
@@ -51,6 +54,7 @@ void Game::initWindow() {
   auto screen_middle =
       (sf::VideoMode::getDesktopMode().size - video_mode.size) / 2u;
 
+  SDEBUG(" ", video_mode.size.x, video_mode.size.y);
   contextSettings.antiAliasingLevel = antialiasing_level;
   window.create(
       video_mode, title,
@@ -106,6 +110,7 @@ void Game::handleEvents() {
 void Game::update(sf::Time dt) {
   handleEvents();
   state->update(dt);
+  audioManager.clearStoppedSounds();
   if (auto next_state = state->next_state) {
     state->exit();
     delete state;
