@@ -5,6 +5,7 @@
 #include <SFML/System.hpp>
 #include <SFML/Window/Event.hpp>
 
+#include "AnimatedSprite.h"
 #include "AudioManager.h"
 #include "Core/utility.h"
 #include "Entity.h"
@@ -22,10 +23,10 @@ class Player : public Entity {
  private:
   keybinds_t& keybinds;
   AudioManager& audioManager;
-  sf::Clock soundClock;
+  sf::Time elapsedTime = sf::Time::Zero;
 
   std::shared_ptr<sf::SoundBuffer> soundBuffer;
-  std::shared_ptr<sf::Texture> texture;
-  sf::Sprite sprite;
+  std::shared_ptr<TileSet> spriteSheet;
+  AnimatedSprite sprite;
   float movementSpeed;
 };

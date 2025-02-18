@@ -5,6 +5,7 @@
 #include <SFML/Window/Event.hpp>
 #include <memory>
 
+#include "Entity/Background.h"
 #include "Entity/Player.h"
 #include "Entity/TileMap.h"
 #include "State.h"
@@ -36,7 +37,7 @@ class GameState : public State {
   std::shared_ptr<TileSet> tileset;
 
   // Members
-  sf::RectangleShape background;
+  Background background;
   std::unique_ptr<sf::Text> main_text;
   std::unique_ptr<sf::Text> sounds_text;
   std::unique_ptr<sf::Text> mouse_text;

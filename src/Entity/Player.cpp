@@ -8,19 +8,22 @@
 Player::Player(float movementSpeed)
     : keybinds(Game::getKeybinds()),
       audioManager(Game::getAudioManager()),
-      soundBuffer(Game::getResourceManager().load<sf::SoundBuffer>(
+      soundBuffer(Game::getResourceManager().retain<sf::SoundBuffer>(
           "sounds/vine_boom", "resources/sounds/vine_boom.wav")),
-      texture(Game::getResourceManager().load<sf::Texture>(
-          "textures/pearto", "resources/images/pearto.png")),
-      sprite(*texture),
+      spriteSheet(Game::getResourceManager().retain<TileSet>(
+          "textures/comic mono", sf::Vector2i{32, 32},
+          "resources/images/comic mono.png")),
+      sprite(*spriteSheet),
       movementSpeed(movementSpeed) {
+  sprite.setFrames({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
   sprite.setOrigin(sprite.getGlobalBounds().getCenter());
+  sprite.setScale({3.f, 3.f});
 }
 
 void Player::update(sf::Time dt) {
-  if (soundClock.getElapsedTime() > EMIT_FREQ &&
+  if ((elapsedTime += dt) > EMIT_FREQ &&
       sf::Keyboard::isKeyPressed(keybinds["MAKE_SOUND"])) {
-    soundClock.restart();
+    elapsedTime = sf::Time::Zero;
     audioManager.playSound(*soundBuffer);
   }
 
@@ -42,6 +45,8 @@ void Player::update(sf::Time dt) {
   }
   movement *= movementSpeed * dt.asSeconds();
   move(movement);
+
+  sprite.update(dt);
 }
 
 void Player::draw(sf::RenderTarget& target, sf::RenderStates states) const {

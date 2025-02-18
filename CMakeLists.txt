@@ -29,7 +29,11 @@ add_executable(main
   src/ResourceManager.h
   src/Resource/TileSet.h
   src/Resource/TileSet.cpp
+  src/AnimatedSprite.h
+  src/AnimatedSprite.cpp
   src/Entity.h
+  src/Entity/Background.h
+  src/Entity/Background.cpp
   src/Entity/TileMap.h
   src/Entity/TileMap.cpp
   src/Entity/Player.h

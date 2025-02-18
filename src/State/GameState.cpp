@@ -23,10 +23,7 @@ void GameState::loadResources() {
 }
 
 void GameState::loadAssets() {
-  background.setSize(sf::Vector2f{window.getSize()});
-  background.setTexture(background_texture.get());
-  background.setTextureRect(
-      sf::IntRect{{0u, 0u}, sf::Vector2i{window.getSize()}});
+  background.setTexture(background_texture);
 
   main_text =
       std::make_unique<sf::Text>(*font, "game design is my passion", 40);
@@ -78,9 +75,7 @@ void GameState::update(sf::Time dt) {
 
   auto top_left = window.mapPixelToCoords({0, 0});
   sounds_text->setPosition(top_left);
-  background.setPosition(top_left);
-  background.setTextureRect(
-      sf::IntRect{sf::FloatRect{top_left, background.getSize()}});
+  background.update(dt);
 
   auto pos_window = sf::Mouse::getPosition(window);
   auto pos_view = window.mapPixelToCoords(pos_window);

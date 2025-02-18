@@ -1,9 +1,7 @@
 x game states
 x entity component system (ditched)
-x player character (ditched for now)
 x generic event handler
-x okay sound system (ditched for now)
-x okay render system (ditched for now)
+x render by game states
 x ditch the EnTT dependency because of the time crunch
 x game singleton
 x signal connection RAII guard
@@ -14,16 +12,17 @@ x player entity
 x sound manager
 x tile set
 x tile map
-background entity
-sprite animation
+x background entity
+x basic sprite animation
 snap movement to grid
 player interaction with entites
 dialog box
 benchmarking
+fix full screen wrong resolution issue
 x button class
 button component
 ui component-based library
-draw layers
+ui rendering
 settings menu
 x loading settings
 saving settings
@@ -33,6 +32,7 @@ cutscenes
 loading scenes
 saving scenes
 level editor
+(A) the game content itself
 build for multiple platforms
 testing
 *text animation
