@@ -9,8 +9,8 @@
 class Entity : public sf::Transformable, public sf::Drawable {
  public:
   virtual ~Entity() {}
-  virtual void update(sf::Time dt) {}
-  void draw(sf::RenderTarget& target, sf::RenderStates states) const override {}
+  virtual void update(sf::Time dt) = 0;
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override = 0;
 };
 
 using entity_t = std::unique_ptr<Entity>;

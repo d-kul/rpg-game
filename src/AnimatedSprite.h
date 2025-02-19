@@ -2,23 +2,19 @@
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Time.hpp>
-#include <vector>
 
 #include "Resource/TileSet.h"
 
 class AnimatedSprite : public sf::Sprite {
  public:
-  static constexpr sf::Time DEFAULT_ANIMATION_FREQUENCY = sf::seconds(0.25f);
-
- public:
   AnimatedSprite(const TileSet &tileSet);
 
-  AnimatedSprite(const TileSet &tileSet, std::vector<int> frames,
-                 int startingFrame = 0);
+  AnimatedSprite(const TileSet &tileSet, const int *frames, int framesSize,
+                 int startFrameIndex = 0);
 
   void setTileSet(const TileSet &tileSet);
 
-  void setFrames(std::vector<int> frames, int startingFrame = 0);
+  void setFrames(const int *frames, int framesSize, int startFrameIndex = 0);
 
   void setAnimationFrequency(sf::Time animationFrequency);
 
@@ -30,7 +26,8 @@ class AnimatedSprite : public sf::Sprite {
 
  private:
   sf::Time elapsedTime = sf::Time::Zero;
-  sf::Time animationFrequency = DEFAULT_ANIMATION_FREQUENCY;
-  int currentFrame;
-  std::vector<int> frames;
+  sf::Time animationFrequency = sf::seconds(0.25f);
+  int currentFrameIndex;
+  const int *frames;
+  int framesSize = 0;
 };

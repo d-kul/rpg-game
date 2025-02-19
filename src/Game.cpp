@@ -1,7 +1,8 @@
 #include "Game.h"
 
 #include <SFML/System/Time.hpp>
-#include <algorithm>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/VideoMode.hpp>
 #include <optional>
 
 #include "Core/Config.h"
@@ -11,6 +12,8 @@
 Game& Game::getInstance() { return instance; }
 
 sf::RenderWindow& Game::getWindow() { return instance.window; }
+
+sf::Vector2u& Game::getWindowSize() { return instance.windowSize; }
 
 EventHandler& Game::getEventHandler() { return instance.eventHandler; }
 
@@ -30,22 +33,13 @@ void Game::initWindow() {
   if (auto width = config.get<unsigned>("width"),
       height = config.get<unsigned>("height");
       width && height) {
-    if (fullscreen) {
-      auto& modes = sf::VideoMode::getFullscreenModes();
-      auto it = std::find_if(
-          modes.begin(), modes.end(), [&](const sf::VideoMode& mode) {
-            return mode.size.x == width && mode.size.y == height;
-          });
-      if (it != modes.end()) {
-        video_mode = *it;
-      }
-    } else {
-      video_mode.size.x = *width;
-      video_mode.size.y = *height;
+    video_mode.size.x = *width;
+    video_mode.size.y = *height;
+    if (fullscreen && !video_mode.isValid()) {
+      video_mode = sf::VideoMode::getDesktopMode();
     }
   }
-  unsigned framerate_limit =
-      config.get<unsigned>("framerate_limit").value_or(144);
+  auto framerate_limit = config.get<unsigned>("framerate_limit");
   bool vsync_enabled = config.get<bool>("vsync_enabled").value_or(false);
   unsigned antialiasing_level =
       config.get<unsigned>("antialiasing_level").value_or(0);
@@ -59,9 +53,15 @@ void Game::initWindow() {
       fullscreen ? sf::Style::None : sf::Style::Titlebar | sf::Style::Close,
       fullscreen ? sf::State::Fullscreen : sf::State::Windowed,
       contextSettings);
-  window.setFramerateLimit(framerate_limit);
-  window.setVerticalSyncEnabled(vsync_enabled);
+  if (framerate_limit) {
+    window.setFramerateLimit(*framerate_limit);
+  } else {
+    window.setVerticalSyncEnabled(vsync_enabled);
+  }
   if (!fullscreen) window.setPosition(sf::Vector2i{screen_middle});
+  windowSize = video_mode.size;
+  window.setView(
+      sf::View{sf::Vector2f{windowSize} / 2.f, sf::Vector2f{windowSize}});
 }
 
 void Game::initKeybinds() {

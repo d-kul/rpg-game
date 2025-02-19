@@ -14,14 +14,14 @@ x tile set
 x tile map
 x background entity
 x basic sprite animation
-snap movement to grid
+x snap movement to grid
+x animation state machine for player
 player interaction with entites
 dialog box
 benchmarking
-fix full screen wrong resolution issue
+x fix full screen wrong resolution issue
 x button class
-button component
-ui component-based library
+ui library
 ui rendering
 settings menu
 x loading settings
@@ -35,7 +35,8 @@ level editor
 (A) the game content itself
 build for multiple platforms
 testing
-*text animation
+simple text animation
+*complex rich text animation
 *embed resources into binary
 *ui editor
 *battle system

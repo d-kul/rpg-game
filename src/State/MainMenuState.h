@@ -4,6 +4,7 @@
 #include <SFML/Window.hpp>
 #include <memory>
 
+#include "Entity/Background.h"
 #include "UI/Button.h"
 #include "State.h"
 
@@ -34,7 +35,7 @@ class MainMenuState : public State {
   std::shared_ptr<sf::Texture> background_texture;
 
   // Members
-  sf::RectangleShape background;
+  Background background;
   std::unique_ptr<sf::Text> text;
   std::unique_ptr<Button> start_button, settings_button, quit_button;
 };

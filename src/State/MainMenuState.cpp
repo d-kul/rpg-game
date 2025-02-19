@@ -15,8 +15,8 @@ void MainMenuState::loadResources() {
 }
 
 void MainMenuState::loadAssets() {
-  background.setSize(sf::Vector2f{window.getSize()});
-  background.setTexture(&*background_texture);
+  background.setSize(sf::Vector2f{windowSize});
+  background.setTexture(background_texture.get(), sf::Vector2f{windowSize});
 
   text = std::make_unique<sf::Text>(*font, "", 40);
   text->setPosition({20.f, 20.f});
@@ -30,7 +30,7 @@ void MainMenuState::loadAssets() {
      << keys.at(keybinds["MAKE_SOUND"]) << " - shoot a thing";
   text->setString(ss.str());
 
-  auto screen_middle = sf::Vector2f{window.getSize()} * 0.5f;
+  auto screen_middle = sf::Vector2f{windowSize} * 0.5f;
 
   start_button = std::make_unique<Button>(*mono_font, sf::Vector2f{200.f, 70.f},
                                           "Start game");
@@ -56,7 +56,9 @@ void MainMenuState::enter() {
   DEBUG("entering MainMenuState");
   loadResources();
   loadAssets();
-  window.setView(window.getDefaultView());
+  window.setView(
+      sf::View{sf::Vector2f{windowSize} / 2.f, sf::Vector2f{windowSize}});
+  background.setPosition(window.getView().getCenter());
 }
 
 void MainMenuState::exit() { DEBUG("entering MainMenuState"); }

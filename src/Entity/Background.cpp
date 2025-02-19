@@ -1,40 +1,43 @@
 #include "Background.h"
 
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/Vector2.hpp>
 
 #include "Game.h"
 
-Background::Background() : window(Game::getWindow()) {}
+Background::Background(bool moving)
+    : window(Game::getWindow()), moving(moving) {}
 
-Background& Background::setTexture(std::shared_ptr<sf::Texture> texture) {
-  this->texture = texture;
-  texture->setRepeated(true);
-  shape.setSize(sf::Vector2f{window.getSize()});
-  shape.setTexture(texture.get());
-  shape.setTextureRect(sf::IntRect{{0, 0}, sf::Vector2i{shape.getSize()}});
+void Background::setTexture(sf::Texture* texture, bool repeated) {
+  setTexture(texture, sf::Vector2f{texture->getSize()}, repeated);
+}
+
+void Background::setTexture(sf::Texture* texture, sf::Vector2f textureSize,
+                            bool repeated) {
+  shape.setTexture(texture);
+  textureScaling.x = textureSize.x / texture->getSize().x;
+  textureScaling.y = textureSize.y / texture->getSize().y;
+  texture->setRepeated(repeated);
+}
+
+void Background::setSize(sf::Vector2f size) {
+  shape.setSize(size);
   shape.setOrigin(shape.getGeometricCenter());
-  return *this;
 }
 
-Background& Background::setTextureRect(sf::IntRect rect) {
-  shape.setTextureRect(rect);
-  return *this;
-}
-
-Background& Background::setSize(sf::Vector2f size) {
-  shape.setSize(sf::Vector2f{window.getSize()});
-  return *this;
-}
-
-Background& Background::setMoving(bool moving) {
+void Background::setMoving(bool moving) {
   this->moving = moving;
-  return *this;
 }
 
 void Background::update(sf::Time dt) {
   if (moving) {
     auto top_left = window.mapPixelToCoords({0, 0});
-    shape.setTextureRect(sf::IntRect{sf::FloatRect{top_left, shape.getSize()}});
+    top_left.x *= textureScaling.x;
+    top_left.y *= textureScaling.y;
+    shape.setTextureRect(
+        sf::IntRect{sf::FloatRect{top_left,
+                                  {shape.getSize().x * textureScaling.x,
+                                   shape.getSize().y * textureScaling.y}}});
   }
   setPosition(window.getView().getCenter());
 }

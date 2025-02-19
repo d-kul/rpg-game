@@ -8,7 +8,7 @@
 // Lifetime management
 void GameState::loadResources() {
   background_texture = resourceManager.retain<sf::Texture>(
-      "textures/teto_plush", "resources/images/teto_plush.png");
+      "textures/space_bg_fumo", "resources/images/space_bg_fumo.png");
   background_texture->setRepeated(true);
   font = resourceManager.retain<sf::Font>("fonts/papyrus",
                                           "resources/fonts/papyrus.ttf");
@@ -23,7 +23,11 @@ void GameState::loadResources() {
 }
 
 void GameState::loadAssets() {
-  background.setTexture(background_texture);
+  background.setMoving(true);
+  background.setSize(sf::Vector2f{windowSize});
+  background.setTexture(background_texture.get(),
+                        sf::Vector2f{background_texture->getSize()} / 2.f,
+                        true);
 
   main_text =
       std::make_unique<sf::Text>(*font, "game design is my passion", 40);
@@ -47,7 +51,8 @@ void GameState::loadAssets() {
 
   const unsigned tiles[] = {0, 4, 8,  12, 1, 5, 9,  13,
                             2, 6, 10, 14, 3, 7, 11, 15};
-  tilemap.load(tileset, tiles, {100, 100}, {4, 4});
+  tilemap.load(tileset, tiles, {64, 64}, {4, 4});
+  tilemap.setOrigin({32, 32});
 }
 
 // State lifetime

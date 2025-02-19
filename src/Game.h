@@ -16,6 +16,7 @@ class Game {
   // Singleton interface
   static Game& getInstance();
   static sf::RenderWindow& getWindow();
+  static sf::Vector2u& getWindowSize();
   static EventHandler& getEventHandler();
   static keybinds_t& getKeybinds();
   static ResourceManager& getResourceManager();
@@ -47,6 +48,7 @@ class Game {
   bool fullscreen = false;
   sf::ContextSettings contextSettings;
   sf::RenderWindow window;
+  sf::Vector2u windowSize;
   ResourceManager resourceManager;
   AudioManager audioManager;
 

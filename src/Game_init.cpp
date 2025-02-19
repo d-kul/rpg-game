@@ -8,6 +8,7 @@ const keybinds_t Game::default_keybinds = {
     {"MOVE_LEFT", sf::Keyboard::Key::A},
     {"MOVE_DOWN", sf::Keyboard::Key::S},
     {"MOVE_RIGHT", sf::Keyboard::Key::D},
+    {"RUN", sf::Keyboard::Key::LShift},
 };
 
 const key_index_t Game::key_index = {
