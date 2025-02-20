@@ -21,6 +21,7 @@ AudioManager& Game::getAudioManager() { return instance.audioManager; }
 InteractibleManager& Game::getInteractibleManager() {
   return instance.interactibleManager;
 }
+ColliderManager& Game::getColliderManager() { return instance.colliderManager; }
 
 // Initialization
 void Game::initWindow() {
@@ -110,6 +111,12 @@ void Game::update(sf::Time dt) {
   audioManager.clearStoppedSounds();
   if (auto next_state = state->next_state) {
     state->exit();
+    // TODO:
+    // eventManager.clearListeners();
+    // // nothing for resourceManager...
+    // audioManager.clearAllSounds();
+    // interactibleManager.clearInteractibles();
+    // colliderManager.clearColliders();
     delete state;
     state = next_state;
     state->enter();

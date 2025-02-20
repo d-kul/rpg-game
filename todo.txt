@@ -18,8 +18,9 @@ x snap movement to grid
 x animation state machine for player
 x better feeling player control
 x player interaction with entites
-single tile size variable
-tilemap collision
+x single tile size variable
+x tilemap & entity collision
+level editor
 dialog box
 benchmarking
 x fix full screen wrong resolution issue
@@ -33,8 +34,6 @@ scenes
 moving between scenes (inside the state)
 cutscenes
 loading scenes
-saving scenes
-level editor
 (A) the game content itself
 build for multiple platforms
 testing
@@ -43,3 +42,4 @@ simple text animation
 *embed resources into binary
 *ui editor
 *battle system
+

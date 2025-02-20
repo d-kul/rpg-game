@@ -7,6 +7,7 @@
 
 #include "Core/utility.h"
 #include "Manager/Audio.h"
+#include "Manager/Collider.h"
 #include "Manager/Event.h"
 #include "Manager/Interactible.h"
 #include "Manager/Resource.h"
@@ -21,10 +22,12 @@ class Game {
   static sf::Vector2u& getWindowSize();
   static keybinds_t& getKeybinds();
 
+  // TODO: manage the growing pile of managers
   static EventManager& getEventManager();
   static ResourceManager& getResourceManager();
   static AudioManager& getAudioManager();
   static InteractibleManager& getInteractibleManager();
+  static ColliderManager& getColliderManager();
 
  private:
   // Initialization
@@ -53,13 +56,16 @@ class Game {
   sf::ContextSettings contextSettings;
   sf::RenderWindow window;
   sf::Vector2u windowSize;
+
+  // TODO: manage the growing pile of managers
+  EventManager eventManager;
   ResourceManager resourceManager;
   AudioManager audioManager;
   InteractibleManager interactibleManager;
+  ColliderManager colliderManager;
 
   State* state = nullptr;
   sf::Clock clock;
-  EventManager eventManager;
   keybinds_t keybinds;
 
  public:

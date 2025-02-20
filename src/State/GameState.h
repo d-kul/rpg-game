@@ -8,6 +8,8 @@
 #include "Entity/Background.h"
 #include "Entity/Player.h"
 #include "Entity/TileMap.h"
+#include "Entity/TileMapCollider.h"
+#include "Entity/RectCollider.h"
 #include "State.h"
 
 class GameState : public State {
@@ -44,7 +46,9 @@ class GameState : public State {
   std::unique_ptr<sf::Text> mouse_text;
   std::unique_ptr<Player> player;
   std::unique_ptr<Interactible> test_entity;
+  RectCollider test_entity_collider;
   TileMap tilemap;
+  TileMapCollider tilemap_collider;
 
   ConnectionGuard onKeyReleased_cg;
 };

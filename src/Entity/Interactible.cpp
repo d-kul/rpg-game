@@ -2,14 +2,14 @@
 
 #include "Game.h"
 
-Interactible::Interactible(sf::Vector2i position)
-    : manager(Game::getInteractibleManager()) {
+Interactible::Interactible(sf::Vector2i position, float tileSize)
+    : manager(Game::getInteractibleManager()), tileSize(tileSize) {
   setPosition(position);
 }
 
 void Interactible::setPosition(sf::Vector2i position) {
   sf::Transformable::setPosition(sf::Vector2f{position} * tileSize);
-  manager.addInteractible(position, this);
+  manager.addInteractible(position, *this);
 }
 
 void Interactible::update(sf::Time dt) {}

@@ -9,7 +9,7 @@ class InteractibleManager;
 
 class InteractibleManager {
  public:
-  void addInteractible(sf::Vector2i position, Interactible* i);
+  void addInteractible(sf::Vector2i position, Interactible& i);
   void interact(sf::Vector2i position);
 
  private:

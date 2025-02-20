@@ -6,14 +6,14 @@
 class TileSet : public sf::Texture {
  public:
   template <typename... Args>
-  TileSet(sf::Vector2i tileSize, Args&&... args)
+  TileSet(unsigned tileSize, Args&&... args)
       : sf::Texture(std::forward<Args>(args)...), tileSize(tileSize) {
-    assert(sf::Texture::getSize().x % tileSize.x == 0 &&
-           sf::Texture::getSize().y % tileSize.y == 0 &&
+    assert(sf::Texture::getSize().x % tileSize == 0 &&
+           sf::Texture::getSize().y % tileSize == 0 &&
            "tileset dimensions should be divisible by tile size");
   }
 
   sf::IntRect getTileRect(int tile) const;
 
-  sf::Vector2i tileSize;
+  unsigned tileSize;
 };

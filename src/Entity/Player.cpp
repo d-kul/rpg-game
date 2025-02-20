@@ -5,26 +5,33 @@
 
 #include "Game.h"
 
-Player::Player(float movementSpeed, float tileSize)
+Player::Player(float tileSize, float movementSpeed)
     : keybinds(Game::getKeybinds()),
       window(Game::getWindow()),
       audioManager(Game::getAudioManager()),
       interactibleManager(Game::getInteractibleManager()),
+      colliderManager(Game::getColliderManager()),
       spriteSheet(Game::getResourceManager().retain<TileSet>(
-          "textures/omori_sheet", sf::Vector2i{32, 32},
-          "resources/images/omori_sheet.png")),
+          "textures/omori_sheet", 32, "resources/images/omori_sheet.png")),
       sprite(*spriteSheet),
-      movementSpeed(movementSpeed),
-      tileSize(tileSize) {
+      tileSize(tileSize),
+      movementSpeed(movementSpeed) {
   sprite.setScale({tileSize / 32.f, tileSize / 32.f});
-  movementDestination = getPosition();
   updateAnimation();
+}
+
+void Player::setPosition(sf::Vector2f position) {
+  sf::Transformable::setPosition(position);
+  setDestination(position);
+}
+
+void Player::setDestination(sf::Vector2f destination) {
+  movementDestination = destination;
 }
 
 void Player::update(sf::Time dt) {
   updateInput();
   updateMovement(dt);
-  updateAnimationState();
   sprite.update(dt);
   auto view = window.getView();
   view.setCenter(getPosition() + sprite.getGlobalBounds().getCenter());
@@ -93,8 +100,13 @@ void Player::updateMovement(sf::Time dt) {
   if (path_left.length() < CONTROL_RANGE ||
       step > path_left.length() + CONTROL_RANGE) {
     setPosition(movementDestination);
-    move(input * (step - path_left.length()));
-    movementDestination += input * tileSize;
+    if (input.length() == 0 ||
+        !colliderManager.checkCollision(getPosition() + input * tileSize +
+                                        sf::Vector2f{0.5f, 0.5f} * tileSize)) {
+      move(input * (step - path_left.length()));
+      movementDestination += input * tileSize;
+    }
+    updateAnimationState();
   } else {
     move(path_left.normalized() * step);
   }
@@ -110,7 +122,7 @@ void Player::updateAnimationState() {
     animationState.direction =
         input.y > 0 ? AnimationState::Down : AnimationState::Up;
   }
-  if (input.lengthSquared() == 0) {
+  if ((movementDestination - getPosition()).length() < CONTROL_RANGE) {
     animationState.idle = true;
   } else {
     animationState.idle = false;

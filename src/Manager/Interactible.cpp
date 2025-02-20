@@ -3,8 +3,8 @@
 #include <SFML/System/Vector2.hpp>
 
 void InteractibleManager::addInteractible(sf::Vector2i position,
-                                          Interactible* i) {
-  interactibles.insert({position, i});
+                                          Interactible& i) {
+  interactibles.insert({position, &i});
 }
 
 void InteractibleManager::interact(sf::Vector2i position) {

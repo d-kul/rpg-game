@@ -9,6 +9,7 @@
 #include "Core/utility.h"
 #include "Entity.h"
 #include "Manager/Audio.h"
+#include "Manager/Collider.h"
 #include "Manager/Interactible.h"
 
 class Player : public Entity {
@@ -17,7 +18,10 @@ class Player : public Entity {
   static constexpr float CONTROL_RANGE = 0.05f;
 
  public:
-  Player(float movementSpeed = 300.f, float tileSize = 64.f);
+  Player(float tileSize = 64.f, float movementSpeed = 300.f);
+
+  void setPosition(sf::Vector2f position);
+  void setDestination(sf::Vector2f destination);
 
   void update(sf::Time dt) override;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -39,14 +43,15 @@ class Player : public Entity {
   sf::RenderWindow& window;
   AudioManager& audioManager;
   InteractibleManager& interactibleManager;
+  ColliderManager& colliderManager;
   sf::Time elapsedTime = sf::Time::Zero;
 
   std::shared_ptr<TileSet> spriteSheet;
   AnimatedSprite sprite;
   AnimationState animationState;
 
-  float movementSpeed;
   float tileSize;
+  float movementSpeed;
   bool pressed = false;
   sf::Vector2f input, movementDestination;
 };

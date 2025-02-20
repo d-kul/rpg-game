@@ -26,6 +26,7 @@ class State {
   keybinds_t& keybinds;
   sf::RenderWindow& window;
   sf::Vector2u& windowSize;
+
   EventManager& eventManager;
   ResourceManager& resourceManager;
   AudioManager& audioManager;

@@ -11,11 +11,10 @@ class Interactible;
 
 class Interactible : public Entity {
  public:
-  static constexpr float tileSize = 64.f;
   using action_t = std::function<void()>;
 
  public:
-  Interactible(sf::Vector2i position);
+  Interactible(sf::Vector2i position, float tileSize = 64.f);
 
   void setPosition(sf::Vector2i position);
   void setPosition(sf::Vector2f position) = delete;
@@ -29,4 +28,5 @@ class Interactible : public Entity {
 
  private:
   InteractibleManager& manager;
+  float tileSize;
 };

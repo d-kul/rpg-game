@@ -27,6 +27,8 @@ add_executable(main
   src/Manager/Resource.h
   src/Manager/Interactible.h
   src/Manager/Interactible.cpp
+  src/Manager/Collider.h
+  src/Manager/Collider.cpp
   src/UI/Button.h
   src/UI/Button.cpp
   src/Resource/TileSet.h
@@ -42,6 +44,12 @@ add_executable(main
   src/Entity/Player.cpp
   src/Entity/Interactible.h
   src/Entity/Interactible.cpp
+  src/Entity/Collider.h
+  src/Entity/Collider.cpp
+  src/Entity/RectCollider.h
+  src/Entity/RectCollider.cpp
+  src/Entity/TileMapCollider.h
+  src/Entity/TileMapCollider.cpp
   src/State.h
   src/State.cpp
   src/State/GameState.h

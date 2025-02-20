@@ -8,8 +8,8 @@
 
 class TileMap : public Entity {
  public:
-  void load(TileSet* tileset, const unsigned* tiles,
-            sf::Vector2i tileSize, sf::Vector2u size);
+  void load(TileSet* tileset, const short* tiles,
+            float tileSize, sf::Vector2u size);
   void update(sf::Time dt) override;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 

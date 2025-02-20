@@ -19,12 +19,27 @@ void GameState::loadResources() {
   music = resourceManager.retain<sf::Music>(
       "music/Teto Kasane Teto", "resources/music/Teto Kasane Teto.ogg");
   music->setLooping(true);
-  tileset = resourceManager.retain<TileSet>("textures/comic mono",
-                                            sf::Vector2i{32, 32},
+  tileset = resourceManager.retain<TileSet>("textures/comic mono", 32,
                                             "resources/images/comic mono.png");
 }
 
+static const short tiles[] = {
+    -1, 4, 8,  12,  //
+    1,  5, 9,  13,  //
+    2,  6, 10, 14,  //
+    3,  7, 11, 15   //
+};
+
+static const bool collision[] = {
+    1, 1, 1, 1,  //
+    1, 0, 0, 1,  //
+    1, 0, 0, 0,  //
+    1, 1, 1, 1   //
+};
+
 void GameState::loadAssets() {
+  float tileSize = 64.f;
+
   background.setMoving(true);
   background.setSize(sf::Vector2f{windowSize});
   background.setTexture(background_texture.get(),
@@ -49,21 +64,29 @@ void GameState::loadAssets() {
   mouse_text->setOutlineColor(sf::Color::Black);
   mouse_text->setOutlineThickness(2.f);
 
-  player = std::make_unique<Player>();
+  player = std::make_unique<Player>(tileSize);
+  player->setPosition(sf::Vector2f{1, 1} * tileSize);
 
-  const unsigned tiles[] = {0, 4, 8,  12, 1, 5, 9,  13,
-                            2, 6, 10, 14, 3, 7, 11, 15};
-  tilemap.load(tileset.get(), tiles, {64, 64}, {4, 4});
+  tilemap.load(tileset.get(), tiles, tileSize, {4, 4});
+  tilemap_collider.load(collision, tileSize, {4, 4});
 
-  test_entity = std::make_unique<Interactible>(sf::Vector2i{5, 5});
+  test_entity = std::make_unique<Interactible>(sf::Vector2i{5, 5}, tileSize);
   auto test_shape = std::make_unique<sf::RectangleShape>();
-  test_shape->setSize({64, 64});
+  test_shape->setSize({tileSize, tileSize});
   test_shape->setTexture(pearto_texture.get());
+  test_shape->setOrigin({tileSize / 2, tileSize / 2});
+  test_shape->setPosition({tileSize / 2, tileSize / 2});
+  auto test_shape_ptr = test_shape.get();
   test_entity->drawable = std::move(test_shape);
+  test_entity_collider.setRect(
+      {test_entity->getPosition(), {tileSize, tileSize}});
 
-  test_entity->action = [&]() {
-    audioManager.playSound(*resourceManager.retain<sf::SoundBuffer>(
-        "sounds/vine_boom", "resources/sounds/vine_boom.wav"));
+  auto& vine_boom = *resourceManager.retain<sf::SoundBuffer>(
+      "sounds/vine_boom", "resources/sounds/vine_boom.wav");
+
+  test_entity->action = [this, vine_boom, test_shape_ptr]() {
+    audioManager.playSound(vine_boom);
+    test_shape_ptr->scale({0.99f, 0.99f});
   };
 }
 
