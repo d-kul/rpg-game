@@ -2,10 +2,10 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "AudioManager.h"
 #include "Core/utility.h"
-#include "EventHandler.h"
-#include "ResourceManager.h"
+#include "Manager/Audio.h"
+#include "Manager/Event.h"
+#include "Manager/Resource.h"
 
 class State {
  public:
@@ -26,7 +26,7 @@ class State {
   keybinds_t& keybinds;
   sf::RenderWindow& window;
   sf::Vector2u& windowSize;
-  EventHandler& eventHandler;
+  EventManager& eventManager;
   ResourceManager& resourceManager;
   AudioManager& audioManager;
 

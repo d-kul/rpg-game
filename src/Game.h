@@ -5,22 +5,26 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
-#include "AudioManager.h"
 #include "Core/utility.h"
-#include "EventHandler.h"
-#include "ResourceManager.h"
+#include "Manager/Audio.h"
+#include "Manager/Event.h"
+#include "Manager/Interactible.h"
+#include "Manager/Resource.h"
 #include "State.h"
 
 class Game {
  public:
   // Singleton interface
   static Game& getInstance();
+
   static sf::RenderWindow& getWindow();
   static sf::Vector2u& getWindowSize();
-  static EventHandler& getEventHandler();
   static keybinds_t& getKeybinds();
+
+  static EventManager& getEventManager();
   static ResourceManager& getResourceManager();
   static AudioManager& getAudioManager();
+  static InteractibleManager& getInteractibleManager();
 
  private:
   // Initialization
@@ -51,10 +55,11 @@ class Game {
   sf::Vector2u windowSize;
   ResourceManager resourceManager;
   AudioManager audioManager;
+  InteractibleManager interactibleManager;
 
   State* state = nullptr;
   sf::Clock clock;
-  EventHandler eventHandler;
+  EventManager eventManager;
   keybinds_t keybinds;
 
  public:

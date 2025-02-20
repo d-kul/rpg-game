@@ -21,12 +21,14 @@ add_executable(main
   src/Core/Logger.h
   src/Core/Logger.cpp
   src/Core/utility.h
-  src/EventHandler.h
+  src/Manager/Event.h
+  src/Manager/Audio.h
+  src/Manager/Audio.cpp
+  src/Manager/Resource.h
+  src/Manager/Interactible.h
+  src/Manager/Interactible.cpp
   src/UI/Button.h
   src/UI/Button.cpp
-  src/AudioManager.h
-  src/AudioManager.cpp
-  src/ResourceManager.h
   src/Resource/TileSet.h
   src/Resource/TileSet.cpp
   src/AnimatedSprite.h
@@ -38,6 +40,8 @@ add_executable(main
   src/Entity/TileMap.cpp
   src/Entity/Player.h
   src/Entity/Player.cpp
+  src/Entity/Interactible.h
+  src/Entity/Interactible.cpp
   src/State.h
   src/State.cpp
   src/State/GameState.h

@@ -12,16 +12,15 @@
 Game& Game::getInstance() { return instance; }
 
 sf::RenderWindow& Game::getWindow() { return instance.window; }
-
 sf::Vector2u& Game::getWindowSize() { return instance.windowSize; }
-
-EventHandler& Game::getEventHandler() { return instance.eventHandler; }
-
 keybinds_t& Game::getKeybinds() { return instance.keybinds; }
 
+EventManager& Game::getEventManager() { return instance.eventManager; }
 ResourceManager& Game::getResourceManager() { return instance.resourceManager; }
-
 AudioManager& Game::getAudioManager() { return instance.audioManager; }
+InteractibleManager& Game::getInteractibleManager() {
+  return instance.interactibleManager;
+}
 
 // Initialization
 void Game::initWindow() {
@@ -101,7 +100,7 @@ void Game::handleEvents() {
       window.close();
     }
     event->visit(
-        [&](auto&& event) { eventHandler.sink<decltype(event)>()(event); });
+        [&](auto&& event) { eventManager.sink<decltype(event)>()(event); });
   }
 }
 

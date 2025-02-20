@@ -2,9 +2,7 @@
 
 #include <SFML/Graphics/PrimitiveType.hpp>
 
-#include "Core/Logger.h"
-
-void TileMap::load(std::shared_ptr<TileSet> tileset, const unsigned* tiles,
+void TileMap::load(TileSet* tileset, const unsigned* tiles,
                    sf::Vector2i tileSize, sf::Vector2u size) {
   auto [width, height] = size;
   auto tileset_size = tileset->getSize();
@@ -54,6 +52,6 @@ void TileMap::update(sf::Time dt) {}
 void TileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   // TODO: add view culling perhaps?
   states.transform *= getTransform();
-  states.texture = tileset.get();
+  states.texture = tileset;
   target.draw(vertices, states);
 }

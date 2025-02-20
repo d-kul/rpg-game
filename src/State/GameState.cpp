@@ -10,6 +10,8 @@ void GameState::loadResources() {
   background_texture = resourceManager.retain<sf::Texture>(
       "textures/space_bg_fumo", "resources/images/space_bg_fumo.png");
   background_texture->setRepeated(true);
+  pearto_texture = resourceManager.retain<sf::Texture>(
+      "textures/pearto", "resources/images/pearto.png");
   font = resourceManager.retain<sf::Font>("fonts/papyrus",
                                           "resources/fonts/papyrus.ttf");
   mono_font = resourceManager.retain<sf::Font>(
@@ -51,8 +53,18 @@ void GameState::loadAssets() {
 
   const unsigned tiles[] = {0, 4, 8,  12, 1, 5, 9,  13,
                             2, 6, 10, 14, 3, 7, 11, 15};
-  tilemap.load(tileset, tiles, {64, 64}, {4, 4});
-  tilemap.setOrigin({32, 32});
+  tilemap.load(tileset.get(), tiles, {64, 64}, {4, 4});
+
+  test_entity = std::make_unique<Interactible>(sf::Vector2i{5, 5});
+  auto test_shape = std::make_unique<sf::RectangleShape>();
+  test_shape->setSize({64, 64});
+  test_shape->setTexture(pearto_texture.get());
+  test_entity->drawable = std::move(test_shape);
+
+  test_entity->action = [&]() {
+    audioManager.playSound(*resourceManager.retain<sf::SoundBuffer>(
+        "sounds/vine_boom", "resources/sounds/vine_boom.wav"));
+  };
 }
 
 // State lifetime
@@ -60,7 +72,7 @@ void GameState::enter() {
   DEBUG("entering GameState");
   loadResources();
   loadAssets();
-  onKeyReleased_cg = eventHandler.bind<sf::Event::KeyReleased>(
+  onKeyReleased_cg = eventManager.bind<sf::Event::KeyReleased>(
       &GameState::onKeyReleased, this);
   music->play();
 }
@@ -74,9 +86,6 @@ void GameState::exit() {
 // Functionality
 void GameState::update(sf::Time dt) {
   player->update(dt);
-  auto view = window.getView();
-  view.setCenter(player->getPosition());
-  window.setView(view);
 
   auto top_left = window.mapPixelToCoords({0, 0});
   sounds_text->setPosition(top_left);
@@ -100,6 +109,7 @@ void GameState::render() {
   window.draw(background);
   window.draw(tilemap);
   window.draw(*player);
+  window.draw(*test_entity);
   window.draw(*main_text);
   window.draw(*sounds_text);
 }

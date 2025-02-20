@@ -14,13 +14,13 @@ Button::Button(const sf::Font& font, sf::Vector2f size, sf::String text,
       idleColor(idleColor),
       hoverColor(hoverColor),
       activeColor(activeColor),
-      onMouseMoved_cg(Game::getEventHandler().bind<sf::Event::MouseMoved>(
+      onMouseMoved_cg(Game::getEventManager().bind<sf::Event::MouseMoved>(
           &Button::onMouseMoved_l, this)),
       onMousePressed_cg(
-          Game::getEventHandler().bind<sf::Event::MouseButtonPressed>(
+          Game::getEventManager().bind<sf::Event::MouseButtonPressed>(
               &Button::onMousePressed_l, this)),
       onMouseReleased_cg(
-          Game::getEventHandler().bind<sf::Event::MouseButtonReleased>(
+          Game::getEventManager().bind<sf::Event::MouseButtonReleased>(
               &Button::onMouseReleased_l, this)) {
   shape.setFillColor(idleColor);
   this->text.setFillColor(textColor);

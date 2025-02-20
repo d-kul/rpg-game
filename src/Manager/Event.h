@@ -1,16 +1,15 @@
 #pragma once
 
 #include <any>
-#include <functional>
 #include <type_traits>
 #include <typeindex>
 #include <unordered_map>
 
 #include "Core/Signal.h"
 
-class EventHandler {
+class EventManager {
  public:
-  EventHandler() = default;
+  EventManager() = default;
 
   template <typename EventT>
   decltype(auto) sink() {

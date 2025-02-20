@@ -16,7 +16,10 @@ x background entity
 x basic sprite animation
 x snap movement to grid
 x animation state machine for player
-player interaction with entites
+x better feeling player control
+x player interaction with entites
+single tile size variable
+tilemap collision
 dialog box
 benchmarking
 x fix full screen wrong resolution issue

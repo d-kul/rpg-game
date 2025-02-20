@@ -27,7 +27,7 @@ void MainMenuState::loadAssets() {
      << keys.at(keybinds["MOVE_UP"]) << keys.at(keybinds["MOVE_LEFT"])
      << keys.at(keybinds["MOVE_DOWN"]) << keys.at(keybinds["MOVE_RIGHT"])
      << " - move\n"
-     << keys.at(keybinds["MAKE_SOUND"]) << " - shoot a thing";
+     << keys.at(keybinds["INTERACT"]) << " - interact";
   text->setString(ss.str());
 
   auto screen_middle = sf::Vector2f{windowSize} * 0.5f;

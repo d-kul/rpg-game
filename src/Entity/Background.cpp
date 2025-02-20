@@ -15,8 +15,8 @@ void Background::setTexture(sf::Texture* texture, bool repeated) {
 void Background::setTexture(sf::Texture* texture, sf::Vector2f textureSize,
                             bool repeated) {
   shape.setTexture(texture);
-  textureScaling.x = textureSize.x / texture->getSize().x;
-  textureScaling.y = textureSize.y / texture->getSize().y;
+  textureScaling =
+      textureSize.componentWiseDiv(sf::Vector2f{texture->getSize()});
   texture->setRepeated(repeated);
 }
 
@@ -25,19 +25,14 @@ void Background::setSize(sf::Vector2f size) {
   shape.setOrigin(shape.getGeometricCenter());
 }
 
-void Background::setMoving(bool moving) {
-  this->moving = moving;
-}
+void Background::setMoving(bool moving) { this->moving = moving; }
 
 void Background::update(sf::Time dt) {
   if (moving) {
     auto top_left = window.mapPixelToCoords({0, 0});
-    top_left.x *= textureScaling.x;
-    top_left.y *= textureScaling.y;
-    shape.setTextureRect(
-        sf::IntRect{sf::FloatRect{top_left,
-                                  {shape.getSize().x * textureScaling.x,
-                                   shape.getSize().y * textureScaling.y}}});
+    top_left = top_left.componentWiseMul(textureScaling);
+    shape.setTextureRect(sf::IntRect{sf::FloatRect{
+        top_left, shape.getSize().componentWiseMul(textureScaling)}});
   }
   setPosition(window.getView().getCenter());
 }

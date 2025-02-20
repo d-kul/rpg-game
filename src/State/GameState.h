@@ -31,6 +31,7 @@ class GameState : public State {
  private:
   // Resources
   std::shared_ptr<sf::Texture> background_texture;
+  std::shared_ptr<sf::Texture> pearto_texture;
   std::shared_ptr<sf::Font> font;
   std::shared_ptr<sf::Font> mono_font;
   std::shared_ptr<sf::Music> music;
@@ -42,6 +43,7 @@ class GameState : public State {
   std::unique_ptr<sf::Text> sounds_text;
   std::unique_ptr<sf::Text> mouse_text;
   std::unique_ptr<Player> player;
+  std::unique_ptr<Interactible> test_entity;
   TileMap tilemap;
 
   ConnectionGuard onKeyReleased_cg;

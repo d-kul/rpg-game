@@ -2,13 +2,12 @@
 
 const keybinds_t Game::default_keybinds = {
     {"QUIT", sf::Keyboard::Key::Escape},
-    {"START_GAME", sf::Keyboard::Key::Enter},
-    {"MAKE_SOUND", sf::Keyboard::Key::B},
+    {"INTERACT", sf::Keyboard::Key::Space},
+    {"RUN", sf::Keyboard::Key::LShift},
     {"MOVE_UP", sf::Keyboard::Key::W},
     {"MOVE_LEFT", sf::Keyboard::Key::A},
     {"MOVE_DOWN", sf::Keyboard::Key::S},
     {"MOVE_RIGHT", sf::Keyboard::Key::D},
-    {"RUN", sf::Keyboard::Key::LShift},
 };
 
 const key_index_t Game::key_index = {
