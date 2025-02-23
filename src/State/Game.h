@@ -5,11 +5,6 @@
 #include <SFML/Window/Event.hpp>
 #include <memory>
 
-#include "Entity/Background.h"
-#include "Entity/Player.h"
-#include "Entity/RectCollider.h"
-#include "Entity/TileMap.h"
-#include "Entity/TileMapCollider.h"
 #include "Level.h"
 #include "State.h"
 
@@ -30,6 +25,9 @@ class GameState : public State {
 
   // Listeners
   void onKeyReleased(sf::Event::KeyReleased keyReleased);
+ 
+ private:
+  void initUI();
 
  private:
   // Resources

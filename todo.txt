@@ -20,28 +20,28 @@ x better feeling player control
 x player interaction with entites
 x single tile size variable
 x tilemap & entity collision
-x level editor (tilemap)
-loading tilemap from saved levels
-level editor (entity)
+x level editor
+x loading tilemap from saved levels
+level editor (entity menu)
 dialog box
-benchmarking
+simple text animation
 x fix full screen wrong resolution issue
 x button class
-ui library
-ui rendering
+x ui library
+ui control elements (not only the button)
+x ui rendering
 settings menu
 x loading settings
 saving settings
-scenes
-moving between scenes (inside the state)
+moving between levels action
 cutscenes
-loading scenes
+x loading levels
+loading entities in levels
 (A) the game content itself
 build for multiple platforms
+test build on other platforms
 x add license
-add packaging with CPack
-testing
-simple text animation
+*benchmarking
 *complex rich text animation
 *embed resources into binary
 *ui editor

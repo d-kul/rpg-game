@@ -47,6 +47,7 @@ void Level::unload() {
   entities.clear();
   colliders.clear();
   resources.clear();
+  background.unsetTexture();
 }
 
 void Level::update(sf::Time dt) {

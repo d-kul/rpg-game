@@ -19,6 +19,7 @@ class AudioManager {
   
   void clearStoppedSounds();
   int playingSounds();
+  void clear();
 
  private:
   sounds_t loaded_sounds;

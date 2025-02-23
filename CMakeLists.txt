@@ -55,10 +55,18 @@ add_executable(game
   src/Manager/Audio.h
   src/Manager/Audio.cpp
   src/Manager/Resource.h
+  src/Manager/UI.h
+  src/Manager/UI.cpp
   src/Manager/Interactible.h
   src/Manager/Interactible.cpp
   src/Manager/Collider.h
   src/Manager/Collider.cpp
+  src/UI/Element.h
+  src/UI/Element.cpp
+  src/UI/Frame.h
+  src/UI/Frame.cpp
+  src/UI/Text.h
+  src/UI/Text.cpp
   src/UI/Button.h
   src/UI/Button.cpp
   src/Resource/TileSet.h

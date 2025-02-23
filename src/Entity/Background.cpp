@@ -3,7 +3,7 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/Vector2.hpp>
 
-Background::Background() {}
+Background::Background() { shape.setFillColor(sf::Color::Transparent); }
 
 void Background::setTexture(sf::Texture* texture, bool repeated) {
   setTexture(texture, sf::Vector2f{texture->getSize()}, repeated);
@@ -11,9 +11,16 @@ void Background::setTexture(sf::Texture* texture, bool repeated) {
 
 void Background::setTexture(sf::Texture* texture, sf::Vector2f textureSize,
                             bool repeated) {
+  shape.setFillColor(sf::Color::White);
   shape.setTexture(texture);
   setTextureSize(textureSize);
   texture->setRepeated(repeated);
+}
+
+void Background::unsetTexture() {
+  shape.setTexture(nullptr);
+  shape.setFillColor(sf::Color::Transparent);
+  textureScaling = {1.f, 1.f};
 }
 
 void Background::setTextureSize(sf::Vector2f size) {
@@ -32,12 +39,11 @@ void Background::setMoving(bool moving) {
 void Background::setView(sf::View view) {
   shape.setSize(view.getSize());
   shape.setOrigin(shape.getGeometricCenter());
-  if (moving) {
-    auto top_left = view.getCenter() - view.getSize() / 2.f;
-    top_left = top_left.componentWiseDiv(textureScaling);
-    shape.setTextureRect(sf::IntRect{sf::FloatRect{
-        top_left, shape.getSize().componentWiseDiv(textureScaling)}});
-  }
+  auto top_left =
+      moving ? view.getCenter() - view.getSize() / 2.f : sf::Vector2f{0, 0};
+  top_left = top_left.componentWiseDiv(textureScaling);
+  shape.setTextureRect(sf::IntRect{sf::FloatRect{
+      top_left, shape.getSize().componentWiseDiv(textureScaling)}});
   setPosition(view.getCenter());
 }
 

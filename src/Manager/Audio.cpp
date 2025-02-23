@@ -22,7 +22,6 @@ AudioManager::sounds_t::iterator AudioManager::playSound(
   auto it = playing_sounds.emplace(playing_sounds.end(), buffer);
   it->play();
   return it;
-  
 }
 
 AudioManager::sounds_t::iterator AudioManager::playSound(
@@ -51,6 +50,12 @@ void AudioManager::clearStoppedSounds() {
   });
 }
 
-int AudioManager::playingSounds() {
-  return playing_sounds.size();
+int AudioManager::playingSounds() { return playing_sounds.size(); }
+
+void AudioManager::clear() {
+  for (auto& sound : playing_sounds) {
+    sound.stop();
+  }
+  loaded_sounds.clear();
+  playing_sounds.clear();
 }

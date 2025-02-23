@@ -11,6 +11,7 @@
 #include "Manager/Event.h"
 #include "Manager/Interactible.h"
 #include "Manager/Resource.h"
+#include "Manager/UI.h"
 #include "State.h"
 
 class Game {
@@ -28,12 +29,13 @@ class Game {
   static AudioManager& getAudioManager();
   static InteractibleManager& getInteractibleManager();
   static ColliderManager& getColliderManager();
+  static UIManager& getUIManager();
 
  private:
   // Initialization
   void initWindow();
   void initKeybinds();
-  void initRegistry();
+  void initManagers();
   void initState();
 
   // Constructor, destructor
@@ -63,6 +65,7 @@ class Game {
   AudioManager audioManager;
   InteractibleManager interactibleManager;
   ColliderManager colliderManager;
+  UIManager uiManager;
 
   State* state = nullptr;
   sf::Clock clock;

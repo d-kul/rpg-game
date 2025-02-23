@@ -7,6 +7,10 @@ void InteractibleManager::addInteractible(sf::Vector2i position,
   interactibles.insert({position, &i});
 }
 
+void InteractibleManager::removeInteractible(sf::Vector2i position) {
+  interactibles.erase(position);
+}
+
 void InteractibleManager::interact(sf::Vector2i position) {
   if (auto it = interactibles.find(position); it != interactibles.end()) {
     if (it->second->action) {

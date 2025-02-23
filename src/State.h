@@ -6,6 +6,7 @@
 #include "Manager/Audio.h"
 #include "Manager/Event.h"
 #include "Manager/Resource.h"
+#include "Manager/UI.h"
 
 class State {
  public:
@@ -30,6 +31,7 @@ class State {
   EventManager& eventManager;
   ResourceManager& resourceManager;
   AudioManager& audioManager;
+  UIManager& uiManager;
 
  public:
   State* next_state = nullptr;

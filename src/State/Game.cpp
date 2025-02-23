@@ -1,6 +1,12 @@
 #include "Game.h"
 
+#include <memory>
+
+#include "Entity/RectCollider.h"
 #include "State/MainMenu.h"
+#include "UI/Button.h"
+#include "UI/Frame.h"
+#include "UI/Text.h"
 
 // Lifetime management
 void GameState::loadResources() {
@@ -53,6 +59,7 @@ void GameState::enter() {
   DEBUG("entering GameState");
   loadResources();
   loadAssets();
+  initUI();
   onKeyReleased_cg = eventManager.bind<sf::Event::KeyReleased>(
       &GameState::onKeyReleased, this);
   music->play();
@@ -66,7 +73,7 @@ void GameState::exit() {
 
 // Functionality
 void GameState::update(sf::Time dt) {
-  level.update(dt);
+  if (!uiManager.hasActiveState()) level.update(dt);
 }
 
 void GameState::render() { level.render(window); }
@@ -74,6 +81,44 @@ void GameState::render() { level.render(window); }
 // Listeners
 void GameState::onKeyReleased(sf::Event::KeyReleased keyReleased) {
   if (keyReleased.code == keybinds["QUIT"]) {
-    next_state = new MainMenuState{};
+    music->pause();
+    uiManager.setActiveState("menu");
   }
+}
+
+void GameState::initUI() {
+  auto main_frame = std::make_unique<Frame>();
+
+  auto& rect = main_frame->shape;
+  rect.setSize({600, 400});
+  rect.setFillColor(sf::Color(0, 0, 0, 180));
+  rect.setOutlineThickness(6.f);
+  rect.setOutlineColor(sf::Color::White);
+
+  main_frame->setPosition({100, 100});
+
+  {
+    auto button = std::make_unique<Button>(*mono_font, sf::Vector2f{200, 30},
+                                           "Close", 15);
+    button->setOrigin(button->shape.getGeometricCenter());
+    button->setPosition(rect.getGeometricCenter());
+    button->move({0, -20});
+    button->onClick().subscribe([this]() {
+      music->play();
+      uiManager.unsetActiveState();
+    });
+    main_frame->addChild(std::move(button));
+  }
+
+  {
+    auto button = std::make_unique<Button>(*mono_font, sf::Vector2f{200, 30},
+                                           "Exit to menu", 15);
+    button->setOrigin(button->shape.getGeometricCenter());
+    button->setPosition(rect.getGeometricCenter());
+    button->move({0, +20});
+    button->onClick().subscribe([this]() { next_state = new MainMenuState{}; });
+    main_frame->addChild(std::move(button));
+  }
+
+  uiManager.states["menu"] = std::move(main_frame);
 }

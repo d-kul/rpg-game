@@ -11,13 +11,12 @@ class Interactible;
 
 class Interactible : public Entity {
  public:
+  // TODO: use Action class
   using action_t = std::function<void()>;
 
  public:
   Interactible(sf::Vector2i position, float tileSize = 64.f);
-
-  void setPosition(sf::Vector2i position);
-  void setPosition(sf::Vector2f position) = delete;
+  ~Interactible();
 
   void update(sf::Time dt) override;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -28,5 +27,5 @@ class Interactible : public Entity {
 
  private:
   InteractibleManager& manager;
-  float tileSize;
+  sf::Vector2i position;
 };

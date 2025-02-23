@@ -8,7 +8,8 @@ State::State()
       windowSize(Game::getWindowSize()),
       eventManager(Game::getEventManager()),
       resourceManager(Game::getResourceManager()),
-      audioManager(Game::getAudioManager()) {}
+      audioManager(Game::getAudioManager()),
+      uiManager(Game::getUIManager()) {}
 
 State::~State() {}
 

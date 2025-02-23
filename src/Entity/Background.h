@@ -14,6 +14,7 @@ class Background : public sf::Transformable, public sf::Drawable {
   void setTexture(sf::Texture* texture, bool repeated = false);
   void setTexture(sf::Texture* texture, sf::Vector2f textureSize,
                   bool repeated = false);
+  void unsetTexture();
   void setTextureSize(sf::Vector2f size);
   void setMoving(bool moving);
   void setView(sf::View view);
@@ -22,6 +23,6 @@ class Background : public sf::Transformable, public sf::Drawable {
 
  private:
   sf::RectangleShape shape;
-  sf::Vector2f textureScaling;
-  bool moving;
+  sf::Vector2f textureScaling = {1.f, 1.f};
+  bool moving = false;
 };

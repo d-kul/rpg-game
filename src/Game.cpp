@@ -7,6 +7,8 @@
 
 #include "Core/Config.h"
 #include "State/MainMenu.h"
+#include "UI/Frame.h"
+#include "UI/Text.h"
 
 // Singleton interface
 Game& Game::getInstance() { return instance; }
@@ -22,6 +24,7 @@ InteractibleManager& Game::getInteractibleManager() {
   return instance.interactibleManager;
 }
 ColliderManager& Game::getColliderManager() { return instance.colliderManager; }
+UIManager& Game::getUIManager() { return instance.uiManager; }
 
 // Initialization
 void Game::initWindow() {
@@ -30,6 +33,8 @@ void Game::initWindow() {
   std::string title = config.get("title").value_or("something cool");
   sf::VideoMode video_mode = sf::VideoMode::getDesktopMode();
   fullscreen = config.get<bool>("fullscreen").value_or(false);
+
+  // TODO: turn off width & height customization
   if (auto width = config.get<unsigned>("width"),
       height = config.get<unsigned>("height");
       width && height) {
@@ -74,7 +79,20 @@ void Game::initKeybinds() {
   }
 }
 
-void Game::initRegistry() {}
+void Game::initManagers() {
+  uiManager.init();
+  auto main_frame = std::make_unique<Frame>();
+  main_frame->shape.setSize(sf::Vector2f{windowSize});
+  main_frame->shape.setFillColor(sf::Color(0, 0, 0, 128));
+  auto font =
+      resourceManager.retain<sf::Font>("resources/fonts/DroidSansMono.ttf");
+  auto text = std::make_unique<Text>(*font, "Loading...");
+  text->text.setFillColor(sf::Color::White);
+  text->text.setOrigin(text->text.getGlobalBounds().getCenter());
+  text->setPosition(main_frame->shape.getGeometricCenter());
+  main_frame->addChild(std::move(text));
+  uiManager.states["loading"] = std::move(main_frame);
+}
 
 void Game::initState() {
   state = new MainMenuState{};
@@ -85,7 +103,7 @@ void Game::initState() {
 Game::Game() {
   initWindow();
   initKeybinds();
-  initRegistry();
+  initManagers();
   initState();
 }
 
@@ -100,6 +118,7 @@ void Game::handleEvents() {
     if (event->is<sf::Event::Closed>()) {
       window.close();
     }
+    uiManager.handleEvent(*event);
     event->visit(
         [&](auto&& event) { eventManager.sink<decltype(event)>()(event); });
   }
@@ -110,13 +129,12 @@ void Game::update(sf::Time dt) {
   state->update(dt);
   audioManager.clearStoppedSounds();
   if (auto next_state = state->next_state) {
+    // NOTE: another hack
+    uiManager.setActiveState("loading");
+    render();
+    uiManager.unsetActiveState();
     state->exit();
-    // TODO:
-    // eventManager.clearListeners();
-    // // nothing for resourceManager...
-    // audioManager.clearAllSounds();
-    // interactibleManager.clearInteractibles();
-    // colliderManager.clearColliders();
+    audioManager.clear();
     delete state;
     state = next_state;
     state->enter();
@@ -126,6 +144,7 @@ void Game::update(sf::Time dt) {
 void Game::render() {
   window.clear();
   state->render();
+  uiManager.render();
   window.display();
 }
 
