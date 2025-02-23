@@ -20,7 +20,9 @@ x better feeling player control
 x player interaction with entites
 x single tile size variable
 x tilemap & entity collision
-level editor
+x level editor (tilemap)
+loading tilemap from saved levels
+level editor (entity)
 dialog box
 benchmarking
 x fix full screen wrong resolution issue
@@ -36,6 +38,8 @@ cutscenes
 loading scenes
 (A) the game content itself
 build for multiple platforms
+x add license
+add packaging with CPack
 testing
 simple text animation
 *complex rich text animation

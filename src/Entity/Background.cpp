@@ -3,10 +3,7 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include "Game.h"
-
-Background::Background(bool moving)
-    : window(Game::getWindow()), moving(moving) {}
+Background::Background() {}
 
 void Background::setTexture(sf::Texture* texture, bool repeated) {
   setTexture(texture, sf::Vector2f{texture->getSize()}, repeated);
@@ -15,26 +12,33 @@ void Background::setTexture(sf::Texture* texture, bool repeated) {
 void Background::setTexture(sf::Texture* texture, sf::Vector2f textureSize,
                             bool repeated) {
   shape.setTexture(texture);
-  textureScaling =
-      textureSize.componentWiseDiv(sf::Vector2f{texture->getSize()});
+  setTextureSize(textureSize);
   texture->setRepeated(repeated);
 }
 
-void Background::setSize(sf::Vector2f size) {
-  shape.setSize(size);
-  shape.setOrigin(shape.getGeometricCenter());
+void Background::setTextureSize(sf::Vector2f size) {
+  textureScaling =
+      size.componentWiseDiv(sf::Vector2f{shape.getTexture()->getSize()});
 }
 
-void Background::setMoving(bool moving) { this->moving = moving; }
-
-void Background::update(sf::Time dt) {
-  if (moving) {
-    auto top_left = window.mapPixelToCoords({0, 0});
-    top_left = top_left.componentWiseMul(textureScaling);
+void Background::setMoving(bool moving) {
+  this->moving = moving;
+  if (!moving) {
     shape.setTextureRect(sf::IntRect{sf::FloatRect{
-        top_left, shape.getSize().componentWiseMul(textureScaling)}});
+        {0, 0}, shape.getSize().componentWiseDiv(textureScaling)}});
   }
-  setPosition(window.getView().getCenter());
+}
+
+void Background::setView(sf::View view) {
+  shape.setSize(view.getSize());
+  shape.setOrigin(shape.getGeometricCenter());
+  if (moving) {
+    auto top_left = view.getCenter() - view.getSize() / 2.f;
+    top_left = top_left.componentWiseDiv(textureScaling);
+    shape.setTextureRect(sf::IntRect{sf::FloatRect{
+        top_left, shape.getSize().componentWiseDiv(textureScaling)}});
+  }
+  setPosition(view.getCenter());
 }
 
 void Background::draw(sf::RenderTarget& target, sf::RenderStates states) const {

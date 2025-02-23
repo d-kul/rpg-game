@@ -5,9 +5,8 @@
 
 class TileSet : public sf::Texture {
  public:
-  template <typename... Args>
-  TileSet(unsigned tileSize, Args&&... args)
-      : sf::Texture(std::forward<Args>(args)...), tileSize(tileSize) {
+  TileSet(const std::filesystem::path& filename, unsigned tileSize)
+      : sf::Texture(filename), tileSize(tileSize) {
     assert(sf::Texture::getSize().x % tileSize == 0 &&
            sf::Texture::getSize().y % tileSize == 0 &&
            "tileset dimensions should be divisible by tile size");

@@ -1,49 +1,42 @@
 #pragma once
 
 #include <cassert>
+#include <filesystem>
 #include <map>
 #include <memory>
-#include <string>
-#include <typeindex>
 #include <utility>
 
 #include "Core/Logger.h"
 
 class ResourceManager {
  private:
-  using resources_t =
-      std::map<std::pair<std::type_index, std::string>, std::shared_ptr<void>>;
+  using resources_t = std::map<std::filesystem::path, std::shared_ptr<void>>;
 
  public:
   template <typename Resource, typename... Args>
-  std::shared_ptr<Resource> load(std::string name, Args&&... args) {
-    auto it = resources.find({std::type_index(typeid(Resource)), name});
+  std::shared_ptr<Resource> load(const std::filesystem::path& filename,
+                                 Args&&... args) {
+    auto it = resources.find(filename);
     if (it != resources.end()) {
-      SDEBUG(" ", "cached", name);
+      SDEBUG(" ", "cached", filename);
       return {it->second, reinterpret_cast<Resource*>(it->second.get())};
     }
-    SDEBUG(" ", "loaded", name);
-    return std::make_shared<Resource>(std::forward<Args>(args)...);
+    SDEBUG(" ", "loaded", filename);
+    return std::make_shared<Resource>(filename, std::forward<Args>(args)...);
   }
 
   template <typename Resource, typename... Args>
-  std::shared_ptr<Resource> retain(std::string name, Args&&... args) {
-    auto key = std::make_pair(std::type_index(typeid(Resource)), name);
-    auto it = resources.find(key);
-    if (it != resources.end()) {
-      SDEBUG(" ", "cached", name);
-      return {it->second, reinterpret_cast<Resource*>(it->second.get())};
-    }
-    SDEBUG(" ", "loaded", name);
-    auto res = std::make_shared<Resource>(std::forward<Args>(args)...);
-    resources[key] = res;
+  std::shared_ptr<Resource> retain(const std::filesystem::path& filename,
+                                   Args&&... args) {
+    auto res = load<Resource>(filename, std::forward<Args>(args)...);
+    resources.insert({filename, res});
     return res;
   }
 
   template <typename Resource>
-  void release(std::string name) {
-    resources.erase({std::type_index(typeid(Resource)), name});
-    SDEBUG(" ", "released", name);
+  void release(const std::filesystem::path& filename) {
+    resources.erase(filename);
+    SDEBUG(" ", "released", filename);
   }
 
  private:

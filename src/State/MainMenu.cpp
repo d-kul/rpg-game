@@ -1,22 +1,22 @@
-#include "MainMenuState.h"
+#include "MainMenu.h"
 
+#include "../Game.h"
 #include "Core/Logger.h"
-#include "Game.h"
-#include "State/GameState.h"
+#include "State/Game.h"
 
 // Lifetime management
 void MainMenuState::loadResources() {
-  font = resourceManager.retain<sf::Font>("fonts/papyrus",
-                                          "resources/fonts/papyrus.ttf");
-  mono_font = resourceManager.retain<sf::Font>(
-      "fonts/DroidSansMono", "resources/fonts/DroidSansMono.ttf");
-  background_texture = resourceManager.retain<sf::Texture>(
-      "textures/pearto", "resources/images/pearto.png");
+  font = resourceManager.retain<sf::Font>("resources/fonts/papyrus.ttf");
+  mono_font =
+      resourceManager.retain<sf::Font>("resources/fonts/DroidSansMono.ttf");
+  background_texture =
+      resourceManager.retain<sf::Texture>("resources/images/pearto.png");
 }
 
 void MainMenuState::loadAssets() {
-  background.setSize(sf::Vector2f{windowSize});
   background.setTexture(background_texture.get(), sf::Vector2f{windowSize});
+  background.setView(
+      {sf::Vector2f{windowSize} / 2.f, sf::Vector2f{windowSize}});
 
   text = std::make_unique<sf::Text>(*font, "", 40);
   text->setPosition({20.f, 20.f});

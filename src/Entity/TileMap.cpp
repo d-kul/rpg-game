@@ -2,34 +2,33 @@
 
 #include <SFML/Graphics/PrimitiveType.hpp>
 
-void TileMap::load(TileSet* tileset, const short* tiles,
-                   float tileSize, sf::Vector2u size) {
+void TileMap::load(TileSet* tileset, std::vector<short> tiles, float tileSize,
+                   sf::Vector2u size) {
+  this->tileset = tileset;
+  this->tiles = std::move(tiles);
+  this->tileSize = tileSize;
+  this->size = size;
+
   auto [width, height] = size;
   auto tileset_size = tileset->getSize();
-  auto tileset_tileSize = tileset->tileSize;
-
-  this->tileset = tileset;
+  auto tileset_tile_size = tileset->tileSize;
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
   vertices.resize(width * height * 6);
 
   for (unsigned i = 0; i < height; i++) {
     for (unsigned j = 0; j < width; j++) {
-      const short tile = tiles[i * width + j];
-      const unsigned tu = tile % (tileset_size.x / tileset_tileSize);
-      const unsigned tv = tile / (tileset_size.x / tileset_tileSize);
+      const short tile = this->tiles[i * width + j];
+      const unsigned tu = tile % (tileset_size.x / tileset_tile_size);
+      const unsigned tv = tile / (tileset_size.x / tileset_tile_size);
       sf::Vertex* triangles = &vertices[(i * width + j) * 6];
 
       triangles[0].position = sf::Vector2f(j * tileSize, i * tileSize);
-      triangles[1].position =
-          sf::Vector2f((j + 1) * tileSize, i * tileSize);
-      triangles[2].position =
-          sf::Vector2f(j * tileSize, (i + 1) * tileSize);
+      triangles[1].position = sf::Vector2f((j + 1) * tileSize, i * tileSize);
+      triangles[2].position = sf::Vector2f(j * tileSize, (i + 1) * tileSize);
       triangles[3].position =
           sf::Vector2f((j + 1) * tileSize, (i + 1) * tileSize);
-      triangles[4].position =
-          sf::Vector2f(j * tileSize, (i + 1) * tileSize);
-      triangles[5].position =
-          sf::Vector2f((j + 1) * tileSize, i * tileSize);
+      triangles[4].position = sf::Vector2f(j * tileSize, (i + 1) * tileSize);
+      triangles[5].position = sf::Vector2f((j + 1) * tileSize, i * tileSize);
 
       if (tile == -1) {
         triangles[0].color = sf::Color::Transparent;
@@ -42,20 +41,22 @@ void TileMap::load(TileSet* tileset, const short* tiles,
       }
 
       triangles[0].texCoords =
-          sf::Vector2f(tu * tileset_tileSize, tv * tileset_tileSize);
+          sf::Vector2f(tu * tileset_tile_size, tv * tileset_tile_size);
       triangles[1].texCoords =
-          sf::Vector2f((tu + 1) * tileset_tileSize, tv * tileset_tileSize);
+          sf::Vector2f((tu + 1) * tileset_tile_size, tv * tileset_tile_size);
       triangles[2].texCoords =
-          sf::Vector2f(tu * tileset_tileSize, (tv + 1) * tileset_tileSize);
-      triangles[3].texCoords = sf::Vector2f((tu + 1) * tileset_tileSize,
-                                            (tv + 1) * tileset_tileSize);
+          sf::Vector2f(tu * tileset_tile_size, (tv + 1) * tileset_tile_size);
+      triangles[3].texCoords = sf::Vector2f((tu + 1) * tileset_tile_size,
+                                            (tv + 1) * tileset_tile_size);
       triangles[4].texCoords =
-          sf::Vector2f(tu * tileset_tileSize, (tv + 1) * tileset_tileSize);
+          sf::Vector2f(tu * tileset_tile_size, (tv + 1) * tileset_tile_size);
       triangles[5].texCoords =
-          sf::Vector2f((tu + 1) * tileset_tileSize, tv * tileset_tileSize);
+          sf::Vector2f((tu + 1) * tileset_tile_size, tv * tileset_tile_size);
     }
   }
 }
+
+sf::Vector2u TileMap::getSize() { return size; }
 
 void TileMap::update(sf::Time dt) {}
 

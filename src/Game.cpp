@@ -6,7 +6,7 @@
 #include <optional>
 
 #include "Core/Config.h"
-#include "State/MainMenuState.h"
+#include "State/MainMenu.h"
 
 // Singleton interface
 Game& Game::getInstance() { return instance; }

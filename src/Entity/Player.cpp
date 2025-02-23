@@ -12,7 +12,7 @@ Player::Player(float tileSize, float movementSpeed)
       interactibleManager(Game::getInteractibleManager()),
       colliderManager(Game::getColliderManager()),
       spriteSheet(Game::getResourceManager().retain<TileSet>(
-          "textures/omori_sheet", 32, "resources/images/omori_sheet.png")),
+          "resources/images/tilesets/omori.png", 32)),
       sprite(*spriteSheet),
       tileSize(tileSize),
       movementSpeed(movementSpeed) {
