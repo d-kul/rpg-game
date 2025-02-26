@@ -1,11 +1,13 @@
 #include "Level.h"
 
+#include <filesystem>
 #include <ios>
 #include <limits>
 #include <memory>
-#include <string>
+#include <stdexcept>
 
 #include "Core/Logger.h"
+#include "Entity/Player.h"
 #include "Entity/TileMapCollider.h"
 #include "Game.h"
 
@@ -13,37 +15,32 @@ Level::Level() : resourceManager(Game::getResourceManager()) {}
 
 void Level::loadFromFile(const std::filesystem::path& filename) {
   unload();
-  DEBUG("loading level from ", filename);
+  DEBUG("loading level data from ", filename);
   std::ifstream in(filename);
-  std::string header;
-
-  bool tilemap_loaded = false;
-  while (std::getline(in, header)) {
-    DEBUG("header is ", header);
-    if (header == "[Background]") {
-      loadBackground(in);
-    } else if (header == "[Tilemap]") {
-      loadTilemap(in);
-      tilemap_loaded = true;
-    } else if (header == "[Player]") {
-      loadPlayer(in);
-    } else if (header == "[Entities]") {
-      loadEntities(in);
-    } else {
-      break;
+  try {
+    LevelData data = LevelData::load(in);
+    Entity* player = nullptr;
+    sf::Vector2u playerPos;
+    loadBackground(data.background);
+    loadTilemap(data.tilemap);
+    loadEntities(data.entities, player, playerPos);
+    if (player) {
+      static_cast<Player*>(player)->setPosition(
+          {data.tilemap.tileSize * playerPos.x,
+           data.tilemap.tileSize * playerPos.y});
     }
-  }
-  if (!tilemap_loaded) {
-    ERROR("no tilemap info in file ", filename);
-    return;
-  }
-  if (player) {
-    player->setPosition(player->getPosition() * tilemap.tileSize);
+  } catch (const std::filesystem::filesystem_error& e) {
+    ERROR("failed to load level data from ", filename, ": ", e.what());
+    unload();
+    throw;
+  } catch (const std::runtime_error& e) {
+    ERROR("failed to load level data from ", filename, ": ", e.what());
+    unload();
+    throw;
   }
 }
 
 void Level::unload() {
-  player.reset();
   entities.clear();
   colliders.clear();
   resources.clear();
@@ -51,7 +48,6 @@ void Level::unload() {
 }
 
 void Level::update(sf::Time dt) {
-  player->update(dt);
   for (auto& entity : entities) {
     entity->update(dt);
   }
@@ -61,7 +57,6 @@ void Level::render(sf::RenderWindow& window) {
   background.setView(window.getView());
   window.draw(background);
   window.draw(tilemap);
-  window.draw(*player);
   for (auto& entity : entities) {
     window.draw(*entity);
   }
@@ -71,74 +66,41 @@ void Level::skipLine(std::ifstream& in) {
   in.ignore(std::numeric_limits<std::streamsize>::max(), in.widen('\n'));
 }
 
-void Level::loadBackground(std::ifstream& in) {
-  std::string line;
-  std::getline(in, line);
-  auto texture = resourceManager.load<sf::Texture>(line);
-  bool repeated, moving;
-  sf::Vector2f size;
-  in >> repeated >> moving >> size.x >> size.y;
-  skipLine(in);
-  background.setTexture(texture.get(), size, repeated);
-  background.setMoving(moving);
+void Level::loadBackground(std::optional<LevelData::BackgroundData>& data) {
+  if (!data) return;
+  auto texture = resourceManager.load<sf::Texture>(data->texturePath);
+  background.setTexture(texture.get(), data->size);
+  texture->setRepeated(data->repeated);
+  background.setMoving(data->moving);
   resources.push_back(texture);
-  SDEBUG(" ", "got background", line, repeated, moving, size.x, size.y);
 }
 
-void Level::loadTilemap(std::ifstream& in) {
-  int width, height;
-  in >> tilemap.tileSize;
-  skipLine(in);
-  std::string line;
-  std::getline(in, line);
-  bool no_tileset = line == "<none>";
-  std::shared_ptr<TileSet> tileset;
-  if (!no_tileset) {
-    int tileset_tile_size;
-    in >> tileset_tile_size;
-    tileset = resourceManager.load<TileSet>(line, tileset_tile_size);
-  }
-  in >> width >> height;
-  std::vector<short> tiles(no_tileset ? 0 : (width * height));
-  std::vector<bool> tile_colliders(width * height);
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      if (!no_tileset) {
-        in >> tiles[i * width + j];
-      }
-      bool val;
-      in >> val;
-      tile_colliders[i * width + j] = val;
-    }
-  }
-  skipLine(in);
-  if (!no_tileset) {
-    tilemap.load(tileset.get(), std::move(tiles), tilemap.tileSize,
-                 sf::Vector2u(width, height));
+void Level::loadTilemap(LevelData::TilemapData& data) {
+  if (!data.noTileset) {
+    auto tileset =
+        resourceManager.load<TileSet>(data.tilesetPath, data.tilesetTileSize);
+    tilemap.load(tileset.get(), std::move(data.tiles), data.tileSize,
+                 sf::Vector2u(data.width, data.height));
     resources.push_back(tileset);
   }
   auto tilemap_collider = std::make_unique<TileMapCollider>();
-  tilemap_collider->load(std::move(tile_colliders), tilemap.tileSize,
-                         sf::Vector2u(width, height));
+  tilemap_collider->load(std::move(data.colliders), data.tileSize,
+                         sf::Vector2u(data.width, data.height));
   colliders.push_back(std::move(tilemap_collider));
-  SDEBUG(" ", "got tilemap", line, width, height);
 }
 
-void Level::loadPlayer(std::ifstream& in) {
-  player = std::make_unique<Player>();
-  int pos_x, pos_y;
-  in >> pos_x >> pos_y;
-  skipLine(in);
-  // NOTE: this is a big stinky hack to get rid of external state
-  player->setPosition(sf::Vector2f(pos_x, pos_y));
-  DEBUG("got player ", pos_x, ",", pos_y);
-}
-
-void Level::loadEntities(std::ifstream& in) {
-  int amount;
-  in >> amount;
-  DEBUG("got ", amount, " entities");
-  for (int i = 0; i < amount; i++) {
-    // TODO: ??? (maybe include player here)
+void Level::loadEntities(std::vector<LevelData::EntityData>& data,
+                         Entity*& player, sf::Vector2u& playerPos) {
+  for (auto& entity : data) {
+    std::visit(overloaded{[&](LevelData::EntityData::PlayerData data) {
+                            auto temp_player = std::make_unique<Player>();
+                            player = temp_player.get();
+                            playerPos = data.position;
+                            entities.push_front(std::move(temp_player));
+                          },
+                          [&](LevelData::EntityData::InteractibleData data) {
+                            // TODO: ...
+                          }},
+               entity.data);
   }
 }

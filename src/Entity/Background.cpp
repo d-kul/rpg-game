@@ -5,19 +5,23 @@
 
 Background::Background() { shape.setFillColor(sf::Color::Transparent); }
 
-void Background::setTexture(sf::Texture* texture, bool repeated) {
-  setTexture(texture, sf::Vector2f{texture->getSize()}, repeated);
+sf::Texture* Background::getTexture() {
+  return texture;
 }
 
-void Background::setTexture(sf::Texture* texture, sf::Vector2f textureSize,
-                            bool repeated) {
-  shape.setFillColor(sf::Color::White);
+void Background::setTexture(sf::Texture* texture) {
+  setTexture(texture, sf::Vector2f{texture->getSize()});
+}
+
+void Background::setTexture(sf::Texture* texture, sf::Vector2f textureSize) {
+  this->texture = texture;
   shape.setTexture(texture);
+  shape.setFillColor(sf::Color::White);
   setTextureSize(textureSize);
-  texture->setRepeated(repeated);
 }
 
 void Background::unsetTexture() {
+  this->texture = nullptr;
   shape.setTexture(nullptr);
   shape.setFillColor(sf::Color::Transparent);
   textureScaling = {1.f, 1.f};

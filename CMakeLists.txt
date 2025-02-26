@@ -51,6 +51,8 @@ add_executable(game
   src/Core/Logger.h
   src/Core/Logger.cpp
   src/Core/utility.h
+  src/Common/LevelData.h
+  src/Common/LevelData.cpp
   src/Manager/Event.h
   src/Manager/Audio.h
   src/Manager/Audio.cpp
@@ -107,6 +109,8 @@ target_link_libraries(game PRIVATE SFML::Audio SFML::Graphics)
 add_executable(editor 
   src/Core/Logger.h
   src/Core/Logger.cpp
+  src/Common/LevelData.h
+  src/Common/LevelData.cpp
   src/Entity/Background.h
   src/Entity/Background.cpp
   src/Resource/TileSet.h

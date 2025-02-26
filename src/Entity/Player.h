@@ -52,6 +52,7 @@ class Player : public Entity {
 
   float tileSize;
   float movementSpeed;
-  bool pressed = false;
+  bool interactKeyPressed = false;
+  bool positionSnapped = false;
   sf::Vector2f input, movementDestination;
 };

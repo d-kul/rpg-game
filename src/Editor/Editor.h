@@ -1,10 +1,10 @@
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/System.hpp>
 #include <map>
 #include <memory>
 #include <set>
 
+#include "Common/LevelData.h"
 #include "Editor/Grid.h"
 #include "Entity/Background.h"
 #include "Resource/TileSet.h"
@@ -21,9 +21,10 @@ class Editor {
   static constexpr sf::Color backgroundColor = sf::Color(10, 10, 10);
   static constexpr sf::Color gridColor = {20, 20, 20};
   static constexpr sf::Color sparseGridColor = {50, 50, 50};
-  static constexpr sf::Color tileSelectionColor = {0, 255, 0, 128};
-  static constexpr sf::Color tileSelectionColliderColor = {0, 128, 128, 128};
-  static constexpr sf::Color tileColliderColor = {0, 0, 255, 128};
+  static constexpr sf::Color colliderFrameColor = {0, 0, 255, 128};
+  static constexpr sf::Color tileSelectColor = {0, 255, 0, 128};
+  static constexpr sf::Color colliderSelectColor = {0, 128, 128, 128};
+  static constexpr sf::Color entitySelectColor = {255, 80, 80, 128};
 
   // Variables
   float panScaling = -1.2f;
@@ -36,58 +37,113 @@ class Editor {
 
   // Controllable state
   bool paintTiles = true;
-  bool colliderSelected = false;
-  bool noBg = true;
+  enum class SelectState {
+    Tile,
+    Collider,
+    Entity
+  } selectState = SelectState::Tile;
+  int selectedTile = -1;
+
+  bool noBackground = true;
+  std::string backgroundPathBuf = "resources/images/bg/space_fumo.png";
   float backgroundSize[2] = {512.f, 512.f};
   bool backgroundMoving = true;
   bool backgroundRepeated = true;
-  float tileSize = 64.f;
+  std::string backgroundPopupText;
+
+  int tilesetTileSize = 32;
+  std::string tilesetPathBuf = "resources/images/tilesets/indoors.png";
+  std::string tilesetPopupText;
+
+  char loadPathBuf[128] = "resources/data/levels/level.txt";
+
+  char savePathBuf[128] = "resources/data/levels/level.txt";
+  float saveTileSize = 64.f;
 
   // Inner state
-  bool pressed = false;
+  bool panButtonPressed = false;
   float scale = 1.f;
-  int selectedTile = -1;
-  std::string savePopupText;
-  std::filesystem::path tilesetPath;
-  std::filesystem::path backgroundPath;
+  std::string loadPopupText, savePopupText;
   sf::Vector2i lastPressPosition;
   sf::Vector2f currentPosition;
   sf::IntRect widgetWindowRect;
-  std::map<std::pair<int, int>, std::pair<int, sf::Sprite>> sparseTileMap;
-  std::set<std::pair<int, int>> sparseTileColliders;
+  std::map<std::pair<int, int>, std::pair<int, sf::Sprite>> tiles;
+  std::set<std::pair<int, int>> colliders;
 
   // Members
   sf::RenderWindow window;
   sf::Clock deltaClock;
+  sf::Font font{"resources/fonts/DroidSansMono.ttf"};
+
+  // Gizmos
+  Grid grid, sparseGrid;
+  sf::CircleShape zeroPoint;
+  sf::RectangleShape selection;
+  sf::Text selectionText{font, "", 25};
+  sf::RectangleShape colliderFrame;
+  // sf::RectangleShape playerRect;
+  // sf::Text playerText;
+
   Background background;
   std::unique_ptr<sf::Texture> backgroundTexture;
-  Grid grid, sparseGrid;
-  sf::RectangleShape tileSelection, tileCollider;
-  sf::CircleShape zeroPoint;
+  std::filesystem::path backgroundTexturePath;
+
   std::unique_ptr<TileSet> tileset;
-  std::unique_ptr<sf::Sprite> sprite;
+  std::filesystem::path tilesetPath;
+
+  // Auxillary
+  std::unique_ptr<sf::Sprite> selectableTileSprite;
 
  public:
   Editor();
   void run();
 
  private:
+  void setSelect(SelectState state);
+  bool isSelected(SelectState state);
+
+  void setTile(sf::Vector2i position, int tile);
+  void eraseTile(sf::Vector2i position);
+  void setCollider(sf::Vector2i position);
+  void eraseCollider(sf::Vector2i position);
+
   void setView(sf::View view);
+
   void handleInput(sf::Event event);
   void handlePanning(sf::Event event);
   void handleScaling(sf::Event event);
   void handleTiles(sf::Event event);
-  void setTile(sf::Vector2i position);
-  void removeTile(sf::Vector2i position);
   void handleKeys(sf::Event event);
+
   void widgets();
+
   void backgroundWidget();
   void tilesetLoadWidget();
   void tilesetSelectWidget();
   void entitiesWidget();
+
+  void loadWidget();
   void saveWidget();
+
+  void load(const std::filesystem::path& path);
+
+  // TODO: try to extract common behaviour in loading from level data & from
+  // tileset/background/(entity?) resource file
+
+  void loadBackgroundFile();
+  void loadBackground(std::optional<LevelData::BackgroundData>& data);
+
+  void loadTilemapFile();
+  void loadTilemap(LevelData::TilemapData& data);
+
+  // void loadEntitiesFile();
+  void loadEntities(std::vector<LevelData::EntityData>& data);
+
   void save(const std::filesystem::path& path);
-  void saveBackground(std::ofstream& out);
-  sf::Vector2i saveTilemap(std::ofstream& out);
+
+  void saveBackground(LevelData& data);
+  sf::Vector2i saveTilemap(LevelData& data);
+  void saveEntities(LevelData& data, sf::Vector2i origin);
+
   void draw();
 };

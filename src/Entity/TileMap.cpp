@@ -2,8 +2,11 @@
 
 #include <SFML/Graphics/PrimitiveType.hpp>
 
+#include "Core/Logger.h"
+
 void TileMap::load(TileSet* tileset, std::vector<short> tiles, float tileSize,
                    sf::Vector2u size) {
+  SDEBUG(" ", "LOADING TILEMAP:", tileset, tiles.size(), tileSize, size.x, size.y);
   this->tileset = tileset;
   this->tiles = std::move(tiles);
   this->tileSize = tileSize;
@@ -13,11 +16,14 @@ void TileMap::load(TileSet* tileset, std::vector<short> tiles, float tileSize,
   auto tileset_size = tileset->getSize();
   auto tileset_tile_size = tileset->tileSize;
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
+  vertices.clear();
   vertices.resize(width * height * 6);
 
   for (unsigned i = 0; i < height; i++) {
+    std::string s;
     for (unsigned j = 0; j < width; j++) {
       const short tile = this->tiles[i * width + j];
+      s += std::to_string(tile) + " ";
       const unsigned tu = tile % (tileset_size.x / tileset_tile_size);
       const unsigned tv = tile / (tileset_size.x / tileset_tile_size);
       sf::Vertex* triangles = &vertices[(i * width + j) * 6];
@@ -53,6 +59,7 @@ void TileMap::load(TileSet* tileset, std::vector<short> tiles, float tileSize,
       triangles[5].texCoords =
           sf::Vector2f((tu + 1) * tileset_tile_size, tv * tileset_tile_size);
     }
+    DEBUG(s);
   }
 }
 

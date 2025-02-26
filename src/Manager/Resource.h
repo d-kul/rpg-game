@@ -6,7 +6,7 @@
 #include <memory>
 #include <utility>
 
-#include "Core/Logger.h"
+// #include "Core/Logger.h"
 
 class ResourceManager {
  private:
@@ -18,10 +18,10 @@ class ResourceManager {
                                  Args&&... args) {
     auto it = resources.find(filename);
     if (it != resources.end()) {
-      SDEBUG(" ", "cached", filename);
+      // SDEBUG(" ", "cached", filename);
       return {it->second, reinterpret_cast<Resource*>(it->second.get())};
     }
-    SDEBUG(" ", "loaded", filename);
+    // SDEBUG(" ", "loaded", filename);
     return std::make_shared<Resource>(filename, std::forward<Args>(args)...);
   }
 
@@ -36,7 +36,7 @@ class ResourceManager {
   template <typename Resource>
   void release(const std::filesystem::path& filename) {
     resources.erase(filename);
-    SDEBUG(" ", "released", filename);
+    // SDEBUG(" ", "released", filename);
   }
 
  private:

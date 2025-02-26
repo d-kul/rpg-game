@@ -16,8 +16,7 @@ void MainMenuState::enter() {
       sf::View{sf::Vector2f{windowSize} / 2.f, sf::Vector2f{windowSize}});
   auto background_texture =
       resourceManager.retain<sf::Texture>("resources/images/pearto.png");
-  background.setTexture(background_texture.get(), sf::Vector2f{windowSize},
-                        true);
+  background.setTexture(background_texture.get(), sf::Vector2f{windowSize});
   background.setView(window.getView());
   initUI();
 }

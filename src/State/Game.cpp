@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "Core/Logger.h"
+#include "Entity/Interactible.h"
 #include "Entity/RectCollider.h"
 #include "State/MainMenu.h"
 #include "UI/Button.h"
@@ -46,7 +48,7 @@ void GameState::loadAssets() {
   test_entity->action = [this, vine_boom, test_shape_ptr]() {
     audioManager.playSound(vine_boom);
     test_shape_ptr->scale({0.99f, 0.99f});
-    level.loadFromFile("resources/data/levels/test_indoors.txt");
+    loadNextLevel("resources/data/levels/test_indoors.txt");
   };
 
   level.entities.push_back(std::move(test_entity));  // TODO: remove it later
@@ -74,6 +76,10 @@ void GameState::exit() {
 // Functionality
 void GameState::update(sf::Time dt) {
   if (!uiManager.hasActiveState()) level.update(dt);
+  if (next_level) {
+    level.loadFromFile(*next_level);
+    next_level.reset();
+  }
 }
 
 void GameState::render() { level.render(window); }
@@ -86,8 +92,13 @@ void GameState::onKeyReleased(sf::Event::KeyReleased keyReleased) {
   }
 }
 
+void GameState::loadNextLevel(const std::filesystem::path& filename) {
+  next_level = filename;
+}
+
 void GameState::initUI() {
   auto main_frame = std::make_unique<Frame>();
+  main_frame->setPosition({100, 100});
 
   auto& rect = main_frame->shape;
   rect.setSize({600, 400});
@@ -95,14 +106,20 @@ void GameState::initUI() {
   rect.setOutlineThickness(6.f);
   rect.setOutlineColor(sf::Color::White);
 
-  main_frame->setPosition({100, 100});
+  {
+    auto text = std::make_unique<Text>(*mono_font, "Pause menu", 20);
+    text->setOrigin(text->text.getGlobalBounds().getCenter());
+    text->setPosition(rect.getGeometricCenter());
+    text->move({0, -40});
+    main_frame->addChild(std::move(text));
+  }
 
   {
     auto button = std::make_unique<Button>(*mono_font, sf::Vector2f{200, 30},
                                            "Close", 15);
     button->setOrigin(button->shape.getGeometricCenter());
     button->setPosition(rect.getGeometricCenter());
-    button->move({0, -20});
+    button->move({0, 0});
     button->onClick().subscribe([this]() {
       music->play();
       uiManager.unsetActiveState();
@@ -115,7 +132,7 @@ void GameState::initUI() {
                                            "Exit to menu", 15);
     button->setOrigin(button->shape.getGeometricCenter());
     button->setPosition(rect.getGeometricCenter());
-    button->move({0, +20});
+    button->move({0, +40});
     button->onClick().subscribe([this]() { next_state = new MainMenuState{}; });
     main_frame->addChild(std::move(button));
   }

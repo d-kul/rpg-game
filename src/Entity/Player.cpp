@@ -37,7 +37,7 @@ void Player::update(sf::Time dt) {
   view.setCenter(getPosition() + sprite.getGlobalBounds().getCenter());
   window.setView(view);
   if (sf::Keyboard::isKeyPressed(keybinds["INTERACT"])) {
-    if (!pressed) {
+    if (!interactKeyPressed) {
       switch (animationState.direction) {
         case AnimationState::Up:
           interactibleManager.interact(sf::Vector2i{getPosition() / tileSize} +
@@ -57,9 +57,9 @@ void Player::update(sf::Time dt) {
           break;
       }
     }
-    pressed = true;
+    interactKeyPressed = true;
   } else {
-    pressed = false;
+    interactKeyPressed = false;
   }
 }
 
@@ -99,12 +99,18 @@ void Player::updateMovement(sf::Time dt) {
   float step = speed * dt.asSeconds();
   if (path_left.length() < CONTROL_RANGE ||
       step > path_left.length() + CONTROL_RANGE) {
-    setPosition(movementDestination);
+    if (!positionSnapped) {
+      setPosition(movementDestination);
+      positionSnapped = true;
+    }
     if (input.length() == 0 ||
         !colliderManager.checkCollision(getPosition() + input * tileSize +
                                         sf::Vector2f{0.5f, 0.5f} * tileSize)) {
       move(input * (step - path_left.length()));
       movementDestination += input * tileSize;
+      if (input.x != 0 || input.y != 0) {
+        positionSnapped = false;
+      }
     }
     updateAnimationState();
   } else {
