@@ -1,20 +1,18 @@
 #include "Interactible.h"
 
 #include <SFML/System/Vector2.hpp>
+#include <algorithm>
 
-void InteractibleManager::addInteractible(sf::Vector2i position,
-                                          Interactible& i) {
-  interactibles.insert({position, &i});
-}
-
-void InteractibleManager::removeInteractible(sf::Vector2i position) {
-  interactibles.erase(position);
-}
-
-void InteractibleManager::interact(sf::Vector2i position) {
-  if (auto it = interactibles.find(position); it != interactibles.end()) {
-    if (it->second->action) {
-      it->second->action();
+std::unique_ptr<AbstractAction> InteractibleManager::interact(sf::Vector2f position) {
+  if (auto it = std::find_if(elements.begin(), elements.end(),
+                             [&](InteractibleEntity* i) {
+                               return (i->getPosition() - position).length() <
+                                      INTERACT_RANGE;
+                             });
+      it != elements.end()) {
+    if ((*it)->action) {
+      return (*it)->action->clone();
     }
   }
+  return {};
 }

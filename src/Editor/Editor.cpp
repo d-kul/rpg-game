@@ -12,11 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
-#include <memory>
 #include <string>
-
-#include "Common/LevelData.h"
-#include "Resource/TileSet.h"
 
 using namespace std::literals;
 
@@ -472,7 +468,7 @@ void Editor::loadBackgroundFile() {
   background.setView(window.getView());
 }
 
-void Editor::loadBackground(std::optional<LevelData::BackgroundData>& data) {
+void Editor::loadBackground(std::optional<LevelData::Background>& data) {
   if (!data) {
     background.unsetTexture();
     backgroundTexture.reset();
@@ -515,7 +511,7 @@ void Editor::loadTilemapFile() {
   }
 }
 
-void Editor::loadTilemap(LevelData::TilemapData& data) {
+void Editor::loadTilemap(LevelData::Tilemap& data) {
   if (data.noTileset) {
     tileset.reset();
     tilesetPath.clear();
@@ -543,8 +539,8 @@ void Editor::loadTilemap(LevelData::TilemapData& data) {
   }
 }
 
-void Editor::loadEntities(std::vector<LevelData::EntityData>& data) {
-  // TODO: uhhh...
+void Editor::loadEntities(std::vector<EntityData>& data) {
+  // TODO(des): uhhh...
 }
 
 void Editor::save(const std::filesystem::path& filename) {
@@ -624,7 +620,7 @@ sf::Vector2i Editor::saveTilemap(LevelData& data) {
 }
 
 void Editor::saveEntities(LevelData& data, sf::Vector2i origin) {
-  // TODO: ugh...
+  // TODO(des): ugh...
 }
 
 void Editor::draw() {

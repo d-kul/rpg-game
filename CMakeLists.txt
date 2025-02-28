@@ -51,8 +51,12 @@ add_executable(game
   src/Core/Logger.h
   src/Core/Logger.cpp
   src/Core/utility.h
-  src/Common/LevelData.h
-  src/Common/LevelData.cpp
+  src/Common/Data/Action.h
+  src/Common/Data/Action.cpp
+  src/Common/Data/Entity.h
+  src/Common/Data/Entity.cpp
+  src/Common/Data/Level.h
+  src/Common/Data/Level.cpp
   src/Manager/Event.h
   src/Manager/Audio.h
   src/Manager/Audio.cpp
@@ -71,31 +75,64 @@ add_executable(game
   src/UI/Text.cpp
   src/UI/Button.h
   src/UI/Button.cpp
+  src/Action.h
+  src/Action.cpp
+  src/Action/FadeInAction.h
+  src/Action/WaitAction.h
+  src/Action/TileAction.h
+  src/Action/MultipleAction.h
+  src/Action/CharNameAction.h
+  src/Action/TextAction.h
+  src/Action/TextSoundAction.h
+  src/Action/MoveCameraAction.h
+  src/Action/MoveAction.h
+  src/Action/MusicPlayAction.h
+  src/Action/ColliderAction.h
+  src/Action/PositionCameraAction.h
+  src/Action/MusicPauseAction.h
+  src/Action/MusicAction.h
+  src/Action/TextRateAction.h
+  src/Action/CharIconAction.h
+  src/Action/SoundAction.h
+  src/Action/SoundAction.cpp
+  src/Action/AnimationAction.h
+  src/Action/MusicStopAction.h
+  src/Action/WaitInputAction.h
+  src/Action/FadeOutAction.h
+  src/Action/PositionAction.h
+  src/Action/CharNameFontAction.h
+  src/Action/ImageAction.h
+  src/Action/LevelAction.h
   src/Resource/TileSet.h
   src/Resource/TileSet.cpp
-  src/AnimatedSprite.h
-  src/AnimatedSprite.cpp
   src/Entity.h
-  src/Entity/Background.h
-  src/Entity/Background.cpp
-  src/Entity/TileMap.h
-  src/Entity/TileMap.cpp
-  src/Entity/Player.h
-  src/Entity/Player.cpp
+  src/Entity/Movable.h
+  src/Entity/Movable.cpp
+  src/Entity/Animated.h
+  src/Entity/Animated.cpp
   src/Entity/Interactible.h
   src/Entity/Interactible.cpp
+  src/Entity/Actor.h
+  src/Entity/Player.h
+  src/Entity/Player.cpp
+  src/Entity/Character.h
+  src/Entity/Prop.h
   src/Entity/Collider.h
   src/Entity/Collider.cpp
   src/Entity/RectCollider.h
   src/Entity/RectCollider.cpp
   src/Entity/TileMapCollider.h
   src/Entity/TileMapCollider.cpp
+  src/Entity/Background.h
+  src/Entity/Background.cpp
+  src/Entity/TileMap.h
+  src/Entity/TileMap.cpp
   src/State.h
   src/State.cpp
-  src/State/Game.h
-  src/State/Game.cpp
-  src/State/MainMenu.h
-  src/State/MainMenu.cpp
+  src/State/GameState.h
+  src/State/GameState.cpp
+  src/State/MainMenuState.h
+  src/State/MainMenuState.cpp
   src/Level.h
   src/Level.cpp
   src/Game.h
@@ -109,8 +146,12 @@ target_link_libraries(game PRIVATE SFML::Audio SFML::Graphics)
 add_executable(editor 
   src/Core/Logger.h
   src/Core/Logger.cpp
-  src/Common/LevelData.h
-  src/Common/LevelData.cpp
+  src/Common/Data/Action.h
+  src/Common/Data/Action.cpp
+  src/Common/Data/Entity.h
+  src/Common/Data/Entity.cpp
+  src/Common/Data/Level.h
+  src/Common/Data/Level.cpp
   src/Entity/Background.h
   src/Entity/Background.cpp
   src/Resource/TileSet.h

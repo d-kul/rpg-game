@@ -22,9 +22,14 @@ x single tile size variable
 x tilemap & entity collision
 x level editor
 x loading tilemap from saved levels
-level editor (entity menu)
+x level data class
+x entity type hierarchy
+entity menu level editor
+x action data class
+action processing in game
+action menu in editor
 dialog box
-simple text animation
+custom text class
 x fix full screen wrong resolution issue
 x button class
 x ui library
@@ -33,8 +38,6 @@ x ui rendering
 settings menu
 x loading settings
 saving settings
-moving between levels action
-cutscenes
 x loading levels
 loading entities in levels
 (A) the game content itself

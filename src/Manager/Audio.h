@@ -16,7 +16,7 @@ class AudioManager {
   sounds_t::iterator playSound(const sf::SoundBuffer& buffer);
   sounds_t::iterator playSound(const sf::Sound& copy);
   sounds_t::iterator playSound(sounds_t::iterator it);
-  
+
   void clearStoppedSounds();
   int playingSounds();
   void clear();

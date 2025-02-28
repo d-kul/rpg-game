@@ -2,30 +2,21 @@
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <functional>
 
-class Interactible;
-
+#include "Action.h"
 #include "Entity.h"
-#include "Manager/Interactible.h"
 
-class Interactible : public Entity {
+class InteractibleEntity : public virtual Entity {
  public:
-  // TODO: use Action class
-  using action_t = std::function<void()>;
+  InteractibleEntity(std::unique_ptr<AbstractAction> action = {});
+  ~InteractibleEntity();
 
- public:
-  Interactible(sf::Vector2i position, float tileSize = 64.f);
-  ~Interactible();
+  void setAction(std::unique_ptr<AbstractAction> action) {
+    this->action = std::move(action);
+  }
 
-  void update(sf::Time dt) override;
-  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+ protected:
+  std::unique_ptr<AbstractAction> action;
 
- public:
-  action_t action;
-  std::unique_ptr<sf::Drawable> drawable;
-
- private:
-  InteractibleManager& manager;
-  sf::Vector2i position;
+  friend class InteractibleManager;
 };

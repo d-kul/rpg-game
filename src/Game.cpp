@@ -6,7 +6,7 @@
 #include <optional>
 
 #include "Core/Config.h"
-#include "State/MainMenu.h"
+#include "State/MainMenuState.h"
 #include "UI/Frame.h"
 #include "UI/Text.h"
 
@@ -16,6 +16,7 @@ Game& Game::getInstance() { return instance; }
 sf::RenderWindow& Game::getWindow() { return instance.window; }
 sf::Vector2u& Game::getWindowSize() { return instance.windowSize; }
 keybinds_t& Game::getKeybinds() { return instance.keybinds; }
+State* Game::getState() { return instance.state; }
 
 EventManager& Game::getEventManager() { return instance.eventManager; }
 ResourceManager& Game::getResourceManager() { return instance.resourceManager; }
@@ -34,7 +35,7 @@ void Game::initWindow() {
   sf::VideoMode video_mode = sf::VideoMode::getDesktopMode();
   fullscreen = config.get<bool>("fullscreen").value_or(false);
 
-  // TODO: turn off width & height customization
+  // TODO(des): turn off width & height customization
   if (auto width = config.get<unsigned>("width"),
       height = config.get<unsigned>("height");
       width && height) {
@@ -129,10 +130,10 @@ void Game::update(sf::Time dt) {
   state->update(dt);
   audioManager.clearStoppedSounds();
   if (auto next_state = state->next_state) {
-    // NOTE: another hack
+    // NOTE(des): another hack
     uiManager.setActiveState("loading");
     render();
-    uiManager.unsetActiveState();
+    uiManager.setActiveState();
     state->exit();
     audioManager.clear();
     delete state;

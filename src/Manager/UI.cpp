@@ -1,5 +1,6 @@
 #include "UI.h"
 
+#include "Core/Logger.h"
 #include "Game.h"
 
 UIManager::UIManager()
@@ -15,11 +16,16 @@ void UIManager::handleEvent(sf::Event event) {
   if (activeState) activeState->handleEvent(event);
 }
 
-void UIManager::unsetActiveState() { activeState = nullptr; }
-
 void UIManager::setActiveState(std::string s) {
-  auto it = states.find(s);
-  if (it != states.end()) activeState = it->second.get();
+  if (s.empty()) {
+    activeState = nullptr; 
+    activeStateName.clear();
+  } else if (auto it = states.find(s); it != states.end()) {
+    activeState = it->second.get();
+    activeStateName = std::move(s);
+  } else {
+    ERROR("state \"", s, "\" has not been found");
+  }
 }
 
 bool UIManager::hasActiveState() { return activeState != nullptr; }

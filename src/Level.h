@@ -2,12 +2,12 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Time.hpp>
-#include <fstream>
 #include <list>
 
-#include "Common/LevelData.h"
+#include "Common/Data/Level.h"
 #include "Entity/Background.h"
 #include "Entity/Collider.h"
+#include "Entity/Player.h"
 #include "Entity/TileMap.h"
 #include "Manager/Resource.h"
 
@@ -22,11 +22,9 @@ class Level {
   void render(sf::RenderWindow& window);
 
  private:
-  static void skipLine(std::ifstream& in);
-  void loadBackground(std::optional<LevelData::BackgroundData>& data);
-  void loadTilemap(LevelData::TilemapData& data);
-  void loadEntities(std::vector<LevelData::EntityData>& data, Entity*& player,
-                    sf::Vector2u& playerPos);
+  void loadBackground(std::optional<LevelData::Background>& data);
+  void loadTilemap(LevelData::Tilemap& data);
+  void loadEntities(LevelData::Tilemap& tilemap, std::vector<EntityData>& data);
 
  private:
   ResourceManager& resourceManager;
@@ -36,5 +34,7 @@ class Level {
   std::list<std::unique_ptr<Entity>> entities;
   std::list<std::unique_ptr<Collider>> colliders;
 
-  friend class GameState;  // TODO: remove it later
+  bool followPlayer = true;
+  Player* player;
+  std::unique_ptr<AbstractAction> activeAction;
 };

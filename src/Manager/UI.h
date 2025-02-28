@@ -13,8 +13,7 @@ class UIManager {
   UIManager();
   void init();
   void handleEvent(sf::Event event);
-  void unsetActiveState();
-  void setActiveState(std::string s);
+  void setActiveState(std::string s = {});
   bool hasActiveState();
   void render();
 
@@ -26,4 +25,5 @@ class UIManager {
   EventManager& eventManager;
   sf::View view;
   UIElement* activeState = nullptr;
+  std::string activeStateName;
 };

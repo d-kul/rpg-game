@@ -33,7 +33,7 @@ class BaseConnection {
 };
 }  // namespace internal
 
-// NOTE: reentrability stuff supported:
+// NOTE(des): reentrability stuff supported:
 // * calling other slots inside a slot
 // * disconnection of other slots
 // * disconnection of own slot

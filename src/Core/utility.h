@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Window/Keyboard.hpp>
+#include <istream>
 #include <string>
 #include <unordered_map>
 
@@ -14,3 +15,10 @@ struct overloaded : Ts... {
 };
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
+
+template <typename T>
+T readOne(std::istream& in) {
+  T t;
+  in >> t >> std::ws;
+  return t;
+}

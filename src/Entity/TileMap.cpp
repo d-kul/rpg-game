@@ -6,7 +6,8 @@
 
 void TileMap::load(TileSet* tileset, std::vector<short> tiles, float tileSize,
                    sf::Vector2u size) {
-  SDEBUG(" ", "LOADING TILEMAP:", tileset, tiles.size(), tileSize, size.x, size.y);
+  SDEBUG(" ", "LOADING TILEMAP:", tileset, tiles.size(), tileSize, size.x,
+         size.y);
   this->tileset = tileset;
   this->tiles = std::move(tiles);
   this->tileSize = tileSize;
@@ -68,7 +69,7 @@ sf::Vector2u TileMap::getSize() { return size; }
 void TileMap::update(sf::Time dt) {}
 
 void TileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-  // TODO: add view culling perhaps?
+  // TODO(des): add view culling perhaps?
   states.transform *= getTransform();
   states.texture = tileset;
   target.draw(vertices, states);

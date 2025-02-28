@@ -5,32 +5,32 @@
 #include <SFML/System.hpp>
 #include <SFML/Window/Event.hpp>
 
-#include "AnimatedSprite.h"
 #include "Core/utility.h"
-#include "Entity.h"
-#include "Manager/Audio.h"
+#include "Entity/Actor.h"
 #include "Manager/Collider.h"
 #include "Manager/Interactible.h"
 
-class Player : public Entity {
- public:
-  static constexpr sf::Time EMIT_FREQ = sf::seconds(0.07);
-  static constexpr float CONTROL_RANGE = 0.05f;
+class Player : public Actor {
+ private:
+  static const std::vector<int> idleAnimations[4];
+  static const std::vector<int> walkingAnimations[4];
+  static const std::vector<int> runningAnimations[4];
+  static constexpr float RUNNING_FACTOR = 1.5f;
 
  public:
   Player(float tileSize = 64.f, float movementSpeed = 300.f);
 
-  void setPosition(sf::Vector2f position);
-  void setDestination(sf::Vector2f destination);
-
   void update(sf::Time dt) override;
-  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+  std::unique_ptr<AbstractAction> updateInteraction();
 
  private:
   void updateInput();
-  void updateMovement(sf::Time dt);
-  void updateAnimationState();
+  void updateNextDestination();
+  void ensureAnimationState();
   void updateAnimation();
+
+  void onSetDestination() override;
+  void onStop() override;
 
  private:
   struct AnimationState {
@@ -40,19 +40,14 @@ class Player : public Entity {
   };
 
   keybinds_t& keybinds;
-  sf::RenderWindow& window;
-  AudioManager& audioManager;
   InteractibleManager& interactibleManager;
   ColliderManager& colliderManager;
-  sf::Time elapsedTime = sf::Time::Zero;
 
-  std::shared_ptr<TileSet> spriteSheet;
-  AnimatedSprite sprite;
-  AnimationState animationState;
+  AnimationState animationState, prevAnimationState;
 
   float tileSize;
   float movementSpeed;
-  bool interactKeyPressed = false;
-  bool positionSnapped = false;
-  sf::Vector2f input, movementDestination;
+  bool interactKeyDown = false;
+  bool interactKeyClick = false;
+  sf::Vector2f input;
 };

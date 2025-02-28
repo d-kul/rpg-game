@@ -4,7 +4,7 @@
 #include <memory>
 #include <set>
 
-#include "Common/LevelData.h"
+#include "Common/Data/Level.h"
 #include "Editor/Grid.h"
 #include "Entity/Background.h"
 #include "Resource/TileSet.h"
@@ -127,17 +127,13 @@ class Editor {
 
   void load(const std::filesystem::path& path);
 
-  // TODO: try to extract common behaviour in loading from level data & from
-  // tileset/background/(entity?) resource file
-
   void loadBackgroundFile();
-  void loadBackground(std::optional<LevelData::BackgroundData>& data);
+  void loadBackground(std::optional<LevelData::Background>& data);
 
   void loadTilemapFile();
-  void loadTilemap(LevelData::TilemapData& data);
+  void loadTilemap(LevelData::Tilemap& data);
 
-  // void loadEntitiesFile();
-  void loadEntities(std::vector<LevelData::EntityData>& data);
+  void loadEntities(std::vector<EntityData>& data);
 
   void save(const std::filesystem::path& path);
 

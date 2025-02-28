@@ -18,7 +18,7 @@ class MainMenuState : public State {
 
  private:
   void initUI();
- 
+
  private:
   Background background;
 };

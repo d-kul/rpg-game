@@ -1,11 +1,9 @@
-#include "Game.h"
+#include "GameState.h"
 
 #include <memory>
 
 #include "Core/Logger.h"
-#include "Entity/Interactible.h"
-#include "Entity/RectCollider.h"
-#include "State/MainMenu.h"
+#include "State/MainMenuState.h"
 #include "UI/Button.h"
 #include "UI/Frame.h"
 #include "UI/Text.h"
@@ -23,37 +21,9 @@ void GameState::loadResources() {
 }
 
 void GameState::loadAssets() {
-  level.loadFromFile("resources/data/levels/level.txt");
-
-  float tileSize = 64.f;
-  auto test_entity =
-      std::make_unique<Interactible>(sf::Vector2i{3, 3}, tileSize);
-
-  auto test_shape = std::make_unique<sf::RectangleShape>();
-  test_shape->setSize({tileSize, tileSize});
-  test_shape->setTexture(pearto_texture.get());
-  test_shape->setOrigin({tileSize / 2, tileSize / 2});
-  test_shape->setPosition({tileSize / 2, tileSize / 2});
-
-  auto test_shape_ptr = test_shape.get();
-  test_entity->drawable = std::move(test_shape);
-
-  auto test_entity_collider = std::make_unique<RectCollider>();
-  test_entity_collider->setRect(
-      {test_entity->getPosition(), {tileSize, tileSize}});
-
-  auto& vine_boom = *resourceManager.retain<sf::SoundBuffer>(
-      "resources/sounds/vine_boom.wav");
-
-  test_entity->action = [this, vine_boom, test_shape_ptr]() {
-    audioManager.playSound(vine_boom);
-    test_shape_ptr->scale({0.99f, 0.99f});
-    loadNextLevel("resources/data/levels/test_indoors.txt");
-  };
-
-  level.entities.push_back(std::move(test_entity));  // TODO: remove it later
-  level.colliders.push_back(
-      std::move(test_entity_collider));  // TODO: remove it later
+  level.loadFromFile(
+      "resources/data/levels/level.txt");  // TODO(des): move initial level name
+                                           // somewhere else
 }
 
 // State lifetime
@@ -122,7 +92,7 @@ void GameState::initUI() {
     button->move({0, 0});
     button->onClick().subscribe([this]() {
       music->play();
-      uiManager.unsetActiveState();
+      uiManager.setActiveState();
     });
     main_frame->addChild(std::move(button));
   }

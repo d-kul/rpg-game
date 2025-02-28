@@ -1,8 +1,7 @@
 #include "Level.h"
 
 #include <filesystem>
-#include <ios>
-#include <limits>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 
@@ -23,12 +22,8 @@ void Level::loadFromFile(const std::filesystem::path& filename) {
     sf::Vector2u playerPos;
     loadBackground(data.background);
     loadTilemap(data.tilemap);
-    loadEntities(data.entities, player, playerPos);
-    if (player) {
-      static_cast<Player*>(player)->setPosition(
-          {data.tilemap.tileSize * playerPos.x,
-           data.tilemap.tileSize * playerPos.y});
-    }
+    loadEntities(data.tilemap, data.entities);
+    followPlayer = data.meta.followPlayer;
   } catch (const std::filesystem::filesystem_error& e) {
     ERROR("failed to load level data from ", filename, ": ", e.what());
     unload();
@@ -45,15 +40,32 @@ void Level::unload() {
   colliders.clear();
   resources.clear();
   background.unsetTexture();
+  player = nullptr;
+  activeAction.reset();  // NOTE(des): what if the action needs to end?
 }
 
 void Level::update(sf::Time dt) {
   for (auto& entity : entities) {
-    entity->update(dt);
+    if (entity.get() != player) {
+      entity->update(dt);
+      continue;
+    }
+    if (activeAction) {
+      player->Actor::update(dt);
+    } else {
+      activeAction = player->updateInteraction();
+    }
   }
+  AbstractAction::update(activeAction, dt);
 }
 
 void Level::render(sf::RenderWindow& window) {
+  if (followPlayer && player) {
+    auto view = window.getView();
+    view.setCenter(player->getPosition() +
+                   player->getSprite().getGlobalBounds().getCenter());
+    window.setView(view);
+  }
   background.setView(window.getView());
   window.draw(background);
   window.draw(tilemap);
@@ -62,11 +74,7 @@ void Level::render(sf::RenderWindow& window) {
   }
 }
 
-void Level::skipLine(std::ifstream& in) {
-  in.ignore(std::numeric_limits<std::streamsize>::max(), in.widen('\n'));
-}
-
-void Level::loadBackground(std::optional<LevelData::BackgroundData>& data) {
+void Level::loadBackground(std::optional<LevelData::Background>& data) {
   if (!data) return;
   auto texture = resourceManager.load<sf::Texture>(data->texturePath);
   background.setTexture(texture.get(), data->size);
@@ -75,7 +83,7 @@ void Level::loadBackground(std::optional<LevelData::BackgroundData>& data) {
   resources.push_back(texture);
 }
 
-void Level::loadTilemap(LevelData::TilemapData& data) {
+void Level::loadTilemap(LevelData::Tilemap& data) {
   if (!data.noTileset) {
     auto tileset =
         resourceManager.load<TileSet>(data.tilesetPath, data.tilesetTileSize);
@@ -89,18 +97,23 @@ void Level::loadTilemap(LevelData::TilemapData& data) {
   colliders.push_back(std::move(tilemap_collider));
 }
 
-void Level::loadEntities(std::vector<LevelData::EntityData>& data,
-                         Entity*& player, sf::Vector2u& playerPos) {
+void Level::loadEntities(LevelData::Tilemap& tilemap,
+                         std::vector<EntityData>& data) {
   for (auto& entity : data) {
-    std::visit(overloaded{[&](LevelData::EntityData::PlayerData data) {
-                            auto temp_player = std::make_unique<Player>();
-                            player = temp_player.get();
-                            playerPos = data.position;
-                            entities.push_front(std::move(temp_player));
-                          },
-                          [&](LevelData::EntityData::InteractibleData data) {
-                            // TODO: ...
-                          }},
-               entity.data);
+    std::visit(
+        overloaded{[&](EntityData::Player
+                           data) {  // TODO(des): add support for movementSpeed
+                     auto player = std::make_unique<Player>(tilemap.tileSize);
+                     player->setPosition(sf::Vector2f{data.position} *
+                                         tilemap.tileSize);
+                     player->setDestination(sf::Vector2f{data.position} *
+                                            tilemap.tileSize);
+                     this->player = player.get();
+                     entities.push_front(std::move(player));
+                   },
+                   [&](auto&& data) {
+                     // TODO(des): ...
+                   }},
+        entity.data);
   }
 }

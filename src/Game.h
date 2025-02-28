@@ -22,8 +22,9 @@ class Game {
   static sf::RenderWindow& getWindow();
   static sf::Vector2u& getWindowSize();
   static keybinds_t& getKeybinds();
+  static State* getState();
 
-  // TODO: manage the growing pile of managers
+  // TODO(des): manage the growing pile of managers
   static EventManager& getEventManager();
   static ResourceManager& getResourceManager();
   static AudioManager& getAudioManager();
@@ -59,7 +60,7 @@ class Game {
   sf::RenderWindow window;
   sf::Vector2u windowSize;
 
-  // TODO: manage the growing pile of managers
+  // TODO(des): manage the growing pile of managers
   EventManager eventManager;
   ResourceManager resourceManager;
   AudioManager audioManager;

@@ -7,65 +7,42 @@
 
 Player::Player(float tileSize, float movementSpeed)
     : keybinds(Game::getKeybinds()),
-      window(Game::getWindow()),
-      audioManager(Game::getAudioManager()),
       interactibleManager(Game::getInteractibleManager()),
       colliderManager(Game::getColliderManager()),
-      spriteSheet(Game::getResourceManager().retain<TileSet>(
-          "resources/images/tilesets/omori.png", 32)),
-      sprite(*spriteSheet),
+      Actor(*Game::getResourceManager().retain<TileSet>(
+          "resources/images/tilesets/omori.png",
+          32)),  // NOTE(des): a bit hacky but whatever
       tileSize(tileSize),
       movementSpeed(movementSpeed) {
   sprite.setScale({tileSize / 32.f, tileSize / 32.f});
   updateAnimation();
 }
 
-void Player::setPosition(sf::Vector2f position) {
-  sf::Transformable::setPosition(position);
-  setDestination(position);
-}
-
-void Player::setDestination(sf::Vector2f destination) {
-  movementDestination = destination;
-}
-
 void Player::update(sf::Time dt) {
   updateInput();
-  updateMovement(dt);
-  sprite.update(dt);
-  auto view = window.getView();
-  view.setCenter(getPosition() + sprite.getGlobalBounds().getCenter());
-  window.setView(view);
-  if (sf::Keyboard::isKeyPressed(keybinds["INTERACT"])) {
-    if (!interactKeyPressed) {
-      switch (animationState.direction) {
-        case AnimationState::Up:
-          interactibleManager.interact(sf::Vector2i{getPosition() / tileSize} +
-                                       sf::Vector2i{0, -1});
-          break;
-        case AnimationState::Down:
-          interactibleManager.interact(sf::Vector2i{getPosition() / tileSize} +
-                                       sf::Vector2i{0, 1});
-          break;
-        case AnimationState::Left:
-          interactibleManager.interact(sf::Vector2i{getPosition() / tileSize} +
-                                       sf::Vector2i{-1, 0});
-          break;
-        case AnimationState::Right:
-          interactibleManager.interact(sf::Vector2i{getPosition() / tileSize} +
-                                       sf::Vector2i{1, 0});
-          break;
-      }
-    }
-    interactKeyPressed = true;
-  } else {
-    interactKeyPressed = false;
-  }
+  MovableEntity::update(dt);
+  ensureAnimationState();
+  AnimatedEntity::update(dt);
 }
 
-void Player::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-  states.transform *= getTransform();
-  target.draw(sprite, states);
+std::unique_ptr<AbstractAction> Player::updateInteraction() {
+  if (!positionSnapped || !interactKeyClick) return {};
+  sf::Vector2f position = getPosition();
+  switch (animationState.direction) {
+    case AnimationState::Up:
+      position.y -= tileSize;
+      break;
+    case AnimationState::Down:
+      position.y += tileSize;
+      break;
+    case AnimationState::Left:
+      position.x -= tileSize;
+      break;
+    case AnimationState::Right:
+      position.x += tileSize;
+      break;
+  }
+  return interactibleManager.interact(position);
 }
 
 void Player::updateInput() {
@@ -90,79 +67,95 @@ void Player::updateInput() {
     }
   }
   input = newInput;
+
+  interactKeyClick = false;
+  if (sf::Keyboard::isKeyPressed(keybinds["INTERACT"])) {
+    if (!interactKeyDown) {
+      interactKeyClick = true;
+    }
+    interactKeyDown = true;
+  } else {
+    interactKeyDown = false;
+  }
+
+  bool running = sf::Keyboard::isKeyPressed(keybinds["RUN"]);
+  speed = running ? movementSpeed * 1.5f : movementSpeed;
+  animationState.running = running;
+
+  updateNextDestination();
 }
 
-void Player::updateMovement(sf::Time dt) {
-  bool running = sf::Keyboard::isKeyPressed(keybinds["RUN"]);
-  float speed = running ? movementSpeed * 1.5f : movementSpeed;
-  auto path_left = movementDestination - getPosition();
-  float step = speed * dt.asSeconds();
-  if (path_left.length() < CONTROL_RANGE ||
-      step > path_left.length() + CONTROL_RANGE) {
-    if (!positionSnapped) {
-      setPosition(movementDestination);
-      positionSnapped = true;
-    }
-    if (input.length() == 0 ||
-        !colliderManager.checkCollision(getPosition() + input * tileSize +
-                                        sf::Vector2f{0.5f, 0.5f} * tileSize)) {
-      move(input * (step - path_left.length()));
-      movementDestination += input * tileSize;
-      if (input.x != 0 || input.y != 0) {
-        positionSnapped = false;
-      }
-    }
-    updateAnimationState();
+void Player::updateNextDestination() {
+  if (input.x != 0 || input.y != 0) {
+    nextDestination = destination + input * tileSize;
   } else {
-    move(path_left.normalized() * step);
+    nextDestination.reset();
   }
 }
 
-void Player::updateAnimationState() {
-  auto prevAnimationState = animationState;
-  bool running = sf::Keyboard::isKeyPressed(keybinds["RUN"]);
+void Player::onSetDestination() {
+  auto path_left = destination - getPosition();
+  animationState.idle = path_left.x == 0 && path_left.y == 0;
   if (input.x != 0) {
     animationState.direction =
-        input.x > 0 ? AnimationState::Right : AnimationState::Left;
+        input.x < 0 ? AnimationState::Left : AnimationState::Right;
   } else if (input.y != 0) {
     animationState.direction =
-        input.y > 0 ? AnimationState::Down : AnimationState::Up;
+        input.y < 0 ? AnimationState::Up : AnimationState::Down;
   }
-  if ((movementDestination - getPosition()).length() < CONTROL_RANGE) {
+  if (colliderManager.checkCollision(destination)) {
+    destination = getPosition();
     animationState.idle = true;
-  } else {
-    animationState.idle = false;
-    animationState.running = running;
-  }
-  if (prevAnimationState.direction != animationState.direction ||
-      prevAnimationState.idle != animationState.idle ||
-      prevAnimationState.running != animationState.running) {
-    updateAnimation();
   }
 }
 
-static const int animations[] = {
-    0,  1,  2,  1,                   // Down
-    8,  9,  10, 9,                   // Left
-    16, 17, 18, 17,                  // Right
-    24, 25, 26, 25,                  // Up
-    32, 33, 34, 35, 36, 37, 38, 39,  // Running Down
-    40, 41, 42, 43, 44, 45, 46, 47,  // Running Left
-    48, 49, 50, 51, 52, 53, 54, 55,  // Running Right
-    56, 57, 58, 59, 60, 61, 62, 63,  // Running Up
-};
+void Player::ensureAnimationState() {
+  if (prevAnimationState.direction == animationState.direction &&
+      prevAnimationState.idle == animationState.idle &&
+      (animationState.idle ||
+       prevAnimationState.running == animationState.running))
+    return;
+  prevAnimationState = animationState;
+  updateAnimation();
+}
 
 void Player::updateAnimation() {
-  const int* frames = animationState.running && !animationState.idle
-                          ? &animations[16 + animationState.direction * 8]
-                          : &animations[animationState.direction * 4];
   if (animationState.idle) {
-    sprite.setFrames(frames + 1, 1);
-  } else if (animationState.running) {
-    sprite.setFrames(frames, 8);
-    sprite.setAnimationFrequency(sf::seconds(0.0833f));
+    setFrames(idleAnimations[animationState.direction]);
+  } else if (!animationState.running) {
+    auto& frames = walkingAnimations[animationState.direction];
+    setFrames(frames, 1);
+    setFrameRate(frames.size());
   } else {
-    sprite.setFrames(frames, 4);
-    sprite.setAnimationFrequency(sf::seconds(0.25f));
+    auto& frames = runningAnimations[animationState.direction];
+    setFrames(frames, 3);
+    setFrameRate(frames.size() * RUNNING_FACTOR);
   }
 }
+
+void Player::onStop() { animationState.idle = true; }
+
+const std::vector<int> Player::idleAnimations[4] = {
+    {1 + 0 * 8},  // Down
+    {1 + 1 * 8},  // Left
+    {1 + 2 * 8},  // Right
+    {1 + 3 * 8}   // Up
+};
+
+const std::vector<int> Player::walkingAnimations[4] = {
+    {1 + 0 * 8, 2 + 0 * 8, 1 + 0 * 8, 0 + 0 * 8},  // Down
+    {1 + 1 * 8, 2 + 1 * 8, 1 + 1 * 8, 0 + 1 * 8},  // Left
+    {1 + 2 * 8, 2 + 2 * 8, 1 + 2 * 8, 0 + 2 * 8},  // Right
+    {1 + 3 * 8, 2 + 3 * 8, 1 + 3 * 8, 0 + 3 * 8}   // Up
+};
+
+const std::vector<int> Player::runningAnimations[4] = {
+    {0 + 4 * 8, 1 + 4 * 8, 2 + 4 * 8, 3 + 4 * 8, 4 + 4 * 8, 5 + 4 * 8,
+     6 + 4 * 8, 7 + 4 * 8},  // Down
+    {0 + 5 * 8, 1 + 5 * 8, 2 + 5 * 8, 3 + 5 * 8, 4 + 5 * 8, 5 + 5 * 8,
+     6 + 5 * 8, 7 + 5 * 8},  // Left
+    {0 + 6 * 8, 1 + 6 * 8, 2 + 6 * 8, 3 + 6 * 8, 4 + 6 * 8, 5 + 6 * 8,
+     6 + 6 * 8, 7 + 6 * 8},  // Right
+    {0 + 7 * 8, 1 + 7 * 8, 2 + 7 * 8, 3 + 7 * 8, 4 + 7 * 8, 5 + 7 * 8,
+     6 + 7 * 8, 7 + 7 * 8}  // Up
+};

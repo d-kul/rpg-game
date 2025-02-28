@@ -4,21 +4,27 @@
 #include <filesystem>
 #include <iostream>
 #include <optional>
-#include <variant>
 #include <vector>
+
+#include "Common/Data/Entity.h"
 
 class LevelData {
  public:
-  struct BackgroundData {
+   static constexpr const char* BACKGROUND_HEADER = "[Background]";
+   static constexpr const char* TILEMAP_HEADER = "[Tilemap]";
+   static constexpr const char* ENTITIES_HEADER = "[Entities]";
+   static constexpr const char* META_HEADER = "[Meta]";
+ public:
+  struct Background {
     std::filesystem::path texturePath;
     bool repeated;
     bool moving;
     sf::Vector2f size;
   };
 
-  std::optional<BackgroundData> background;
+  std::optional<Background> background;
 
-  struct TilemapData {
+  struct Tilemap {
     float tileSize;
     bool noTileset;
     std::filesystem::path tilesetPath;
@@ -29,16 +35,11 @@ class LevelData {
     std::vector<bool> colliders;
   } tilemap;
 
-  struct EntityData {
-    struct PlayerData {
-      sf::Vector2u position;
-    };
-    struct InteractibleData {
-      sf::Vector2u position;
-    };
-    std::variant<PlayerData, InteractibleData> data;
-  };
   std::vector<EntityData> entities;
+
+  struct Meta {
+    bool followPlayer = true;
+  } meta;
 
   static LevelData load(std::istream& in);
   void save(std::ostream& out);
@@ -50,6 +51,9 @@ class LevelData {
   void loadTilemapData(std::istream& in);
   void saveTilemapData(std::ostream& out);
 
-  void saveEntityData(std::ostream& out);
   void loadEntityData(std::istream& in);
+  void saveEntityData(std::ostream& out);
+
+  void loadMetaData(std::istream& in);
+  void saveMetaData(std::ostream& out);
 };

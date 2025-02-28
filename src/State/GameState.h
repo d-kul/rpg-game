@@ -26,10 +26,12 @@ class GameState : public State {
 
   // Listeners
   void onKeyReleased(sf::Event::KeyReleased keyReleased);
- 
+
  private:
   void loadNextLevel(const std::filesystem::path& filename);
   void initUI();
+
+  friend class LevelAction;
 
  private:
   // Resources

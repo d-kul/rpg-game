@@ -2,7 +2,7 @@
 
 #include <SFML/Audio/Sound.hpp>
 
-// TODO: reduce copypasting
+// TODO(des): reduce copypasting
 
 AudioManager::sounds_t::iterator AudioManager::loadSound(
     const sf::SoundBuffer& buffer) {

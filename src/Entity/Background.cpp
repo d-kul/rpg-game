@@ -5,9 +5,7 @@
 
 Background::Background() { shape.setFillColor(sf::Color::Transparent); }
 
-sf::Texture* Background::getTexture() {
-  return texture;
-}
+sf::Texture* Background::getTexture() { return texture; }
 
 void Background::setTexture(sf::Texture* texture) {
   setTexture(texture, sf::Vector2f{texture->getSize()});

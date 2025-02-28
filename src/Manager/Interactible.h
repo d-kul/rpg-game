@@ -1,24 +1,20 @@
 #pragma once
 
 #include <SFML/System/Vector2.hpp>
-#include <map>
-
-class InteractibleManager;
+#include <set>
 
 #include "Entity/Interactible.h"
 
 class InteractibleManager {
  public:
-  void addInteractible(sf::Vector2i position, Interactible& i);
-  void removeInteractible(sf::Vector2i position);
-  void interact(sf::Vector2i position);
+  using elements_t = std::set<InteractibleEntity*>;
+  static constexpr float INTERACT_RANGE = 3.f;
+
+ public:
+  std::unique_ptr<AbstractAction> interact(sf::Vector2f position);
 
  private:
-  struct CoordCmp {
-    bool operator()(const sf::Vector2i& a, const sf::Vector2i& b) const {
-      return a.x == b.x ? a.y < b.y : a.x < b.x;
-    }
-  };
+  elements_t elements;
 
-  std::map<sf::Vector2i, Interactible*, CoordCmp> interactibles;
+  friend class InteractibleEntity;
 };

@@ -1,10 +1,10 @@
-#include "MainMenu.h"
+#include "MainMenuState.h"
 
 #include <memory>
 
-#include "../Game.h"
 #include "Core/Logger.h"
-#include "State/Game.h"
+#include "Game.h"
+#include "State/GameState.h"
 #include "UI/Button.h"
 #include "UI/Frame.h"
 #include "UI/Text.h"
