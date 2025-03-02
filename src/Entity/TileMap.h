@@ -8,7 +8,7 @@
 
 class TileMap : public Entity {
  public:
-  void load(TileSet* tileset, std::vector<short> tiles, float tileSize,
+  void load(const TileSet& tileset, std::vector<short> tiles, float tileSize,
             sf::Vector2u size);
 
   sf::Vector2u getSize();
@@ -21,7 +21,7 @@ class TileMap : public Entity {
 
  private:
   sf::VertexArray vertices;
-  TileSet* tileset = nullptr;
+  const sf::Texture* texture;
   std::vector<short> tiles;
   sf::Vector2u size;
 };

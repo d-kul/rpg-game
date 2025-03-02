@@ -2,9 +2,9 @@
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Transformable.hpp>
+#include <SFML/Graphics/View.hpp>
 #include <SFML/System/Time.hpp>
 
 class Background : public sf::Transformable, public sf::Drawable {

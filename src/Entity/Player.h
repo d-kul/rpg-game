@@ -19,6 +19,8 @@ class Player : public Actor {
 
  public:
   Player(float tileSize = 64.f, float movementSpeed = 300.f);
+  Player(const sf::Texture& texture, float tileSize = 64.f,
+         float movementSpeed = 300.f);
 
   void update(sf::Time dt) override;
   std::unique_ptr<AbstractAction> updateInteraction();
@@ -31,6 +33,9 @@ class Player : public Actor {
 
   void onSetDestination() override;
   void onStop() override;
+
+ public:
+  bool control = true;
 
  private:
   struct AnimationState {

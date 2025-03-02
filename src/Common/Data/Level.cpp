@@ -3,7 +3,6 @@
 #include <stdexcept>
 
 #include "Core/Logger.h"
-#include "Core/utility.h"
 
 static void error(std::string what_arg) {
   ERROR(what_arg);

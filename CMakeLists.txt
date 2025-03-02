@@ -103,13 +103,14 @@ add_executable(game
   src/Action/CharNameFontAction.h
   src/Action/ImageAction.h
   src/Action/LevelAction.h
+  src/Resource/AbstractSpriteSheet.h
+  src/Resource/SpriteSheet.h
   src/Resource/TileSet.h
-  src/Resource/TileSet.cpp
   src/Entity.h
   src/Entity/Movable.h
   src/Entity/Movable.cpp
-  src/Entity/Animated.h
-  src/Entity/Animated.cpp
+  src/Entity/Drawable.h
+  src/Entity/Drawable.cpp
   src/Entity/Interactible.h
   src/Entity/Interactible.cpp
   src/Entity/Actor.h
@@ -154,8 +155,9 @@ add_executable(editor
   src/Common/Data/Level.cpp
   src/Entity/Background.h
   src/Entity/Background.cpp
+  src/Resource/AbstractSpriteSheet.h
+  src/Resource/SpriteSheet.h
   src/Resource/TileSet.h
-  src/Resource/TileSet.cpp
   src/Editor/Grid.h
   src/Editor/Grid.cpp
   src/Editor/Editor.h

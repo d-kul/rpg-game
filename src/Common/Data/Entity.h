@@ -8,29 +8,32 @@
 
 class EntityData {
  public:
+  struct Sprite {
+    std::filesystem::path textureFile;
+  };
+
   struct Player {
     static constexpr const char* HEADER = "(Player)";
-    sf::Vector2u position;
-    // animated sprite
+    sf::Vector2i position;
+    Sprite sprite;
   };
 
   struct Character {
     static constexpr const char* HEADER = "(Character)";
-    sf::Vector2u position;
-    // animated sprite
+    sf::Vector2i position;
+    Sprite sprite;
     std::optional<ActionData> action;
   };
 
   struct Prop {
     static constexpr const char* HEADER = "(Prop)";
-    sf::Vector2u position;
-    // animated sprite
+    sf::Vector2i position;
+    Sprite sprite;
     std::optional<ActionData> action;
   };
 
   struct Trigger {
-    sf::Vector2u position;
-    // sprite
+    sf::Vector2i position;
     std::optional<ActionData> action;
   };
 

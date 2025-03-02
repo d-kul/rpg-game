@@ -130,7 +130,7 @@ void Game::update(sf::Time dt) {
   state->update(dt);
   audioManager.clearStoppedSounds();
   if (auto next_state = state->next_state) {
-    // NOTE(des): another hack
+    // NOTE(des): another hack?
     uiManager.setActiveState("loading");
     render();
     uiManager.setActiveState();

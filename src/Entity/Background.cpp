@@ -1,6 +1,7 @@
 #include "Background.h"
 
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/System/Vector2.hpp>
 
 Background::Background() { shape.setFillColor(sf::Color::Transparent); }

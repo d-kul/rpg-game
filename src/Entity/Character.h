@@ -5,15 +5,24 @@
 
 class Character : public Actor, public InteractibleEntity {
  public:
-  Character(const TileSet& tileset, const std::vector<int>& frames = {0},
-            float frameRate = 1.f, int startFrameIndex = 0,
+  Character(const sf::Texture& texture,
+            std::unique_ptr<AbstractSpriteSheet> spriteSheet,
             std::unique_ptr<AbstractAction> action = {})
-      : Actor(tileset, frames, frameRate, startFrameIndex),
+      : Actor(texture, std::move(spriteSheet)),
+        InteractibleEntity(std::move(action)) {}
+  Character(const sf::Texture& texture,
+            std::unique_ptr<AbstractSpriteSheet> spriteSheet,
+            const std::vector<int>& frames, float frameRate = 1.f,
+            int startFrameIndex = 0,
+            std::unique_ptr<AbstractAction> action = {})
+      : Actor(texture, std::move(spriteSheet), frames, frameRate,
+              startFrameIndex),
         InteractibleEntity(std::move(action)) {}
 
-  Character(const TileSet& tileset, int frame = 0,
+  Character(const sf::Texture& texture,
             std::unique_ptr<AbstractAction> action = {})
-      : Actor(tileset, {frame}),
-        InteractibleEntity(std::move(action)) {}
+      : Actor(texture), InteractibleEntity(std::move(action)) {}
+  Character(const sf::Texture& texture, const sf::IntRect& rect,
+            std::unique_ptr<AbstractAction> action = {})
+      : Actor(texture, rect), InteractibleEntity(std::move(action)) {}
 };
-

@@ -3,16 +3,33 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
 
-class TileSet : public sf::Texture {
+#include "Resource/AbstractSpriteSheet.h"
+
+class TileSet : public AbstractSpriteSheet {
  public:
-  TileSet(const std::filesystem::path& filename, unsigned tileSize)
-      : sf::Texture(filename), tileSize(tileSize) {
-    assert(sf::Texture::getSize().x % tileSize == 0 &&
-           sf::Texture::getSize().y % tileSize == 0 &&
-           "tileset dimensions should be divisible by tile size");
+  TileSet() = default;
+
+  TileSet(const sf::Texture& texture, sf::Vector2u tileSize)
+      : AbstractSpriteSheet(texture), tileSize(tileSize) {}
+
+  TileSet(const sf::Texture& texture, unsigned tileSize)
+      : TileSet(texture, {tileSize, tileSize}) {}
+
+  sf::IntRect getRect(int index) const override {
+    int width = texture->getSize().x / tileSize.x;
+    return {sf::Vector2i{index % width, index / width}.componentWiseMul(
+                sf::Vector2i{tileSize}),
+            sf::Vector2i{tileSize}};
   }
 
-  sf::IntRect getTileRect(int tile) const;
+  unsigned getRectAmount() const override {
+    auto size = getSize();
+    return size.x * size.y;
+  }
 
-  unsigned tileSize;
+  sf::Vector2u getSize() const {
+    return texture->getSize().componentWiseDiv(tileSize);
+  }
+
+  sf::Vector2u tileSize;
 };

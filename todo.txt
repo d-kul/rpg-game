@@ -24,29 +24,27 @@ x level editor
 x loading tilemap from saved levels
 x level data class
 x entity type hierarchy
-entity menu level editor
+x sprite sheet hirearchy
+x entity menu level editor
 x action data class
-action processing in game
-action menu in editor
-dialog box
-custom text class
 x fix full screen wrong resolution issue
 x button class
 x ui library
-ui control elements (not only the button)
 x ui rendering
-settings menu
 x loading settings
-saving settings
 x loading levels
+x add license
+action processing in game
+action menu in editor
+think about how to implement text state machine through actions
+dialog box
+ui control elements (not only the button)
+settings menu
+saving settings
 loading entities in levels
-(A) the game content itself
 build for multiple platforms
 test build on other platforms
-x add license
+(A) the game content itself
 *benchmarking
-*complex rich text animation
+*text animation w/ custom text class
 *embed resources into binary
-*ui editor
-*battle system
-

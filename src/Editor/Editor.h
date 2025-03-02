@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include <list>
 #include <map>
 #include <memory>
 #include <set>
@@ -21,10 +22,12 @@ class Editor {
   static constexpr sf::Color backgroundColor = sf::Color(10, 10, 10);
   static constexpr sf::Color gridColor = {20, 20, 20};
   static constexpr sf::Color sparseGridColor = {50, 50, 50};
-  static constexpr sf::Color colliderFrameColor = {0, 0, 255, 128};
   static constexpr sf::Color tileSelectColor = {0, 255, 0, 128};
   static constexpr sf::Color colliderSelectColor = {0, 128, 128, 128};
-  static constexpr sf::Color entitySelectColor = {255, 80, 80, 128};
+  static constexpr sf::Color colliderFrameColor = {0, 0, 255, 128};
+  static constexpr sf::Color entitySelectColor = {128, 64, 64, 128};
+  static constexpr sf::Color entityFrameSelectedColor = {255, 0, 128, 128};
+  static constexpr sf::Color entityFrameColor = {255, 0, 0, 128};
 
   // Variables
   float panScaling = -1.2f;
@@ -43,6 +46,7 @@ class Editor {
     Entity
   } selectState = SelectState::Tile;
   int selectedTile = -1;
+  EntityData* selectedEntity = nullptr;
 
   bool noBackground = true;
   std::string backgroundPathBuf = "resources/images/bg/space_fumo.png";
@@ -59,6 +63,10 @@ class Editor {
 
   char savePathBuf[128] = "resources/data/levels/level.txt";
   float saveTileSize = 64.f;
+
+  std::list<EntityData> entities;
+  std::vector<bool> open;
+  std::list<EntityData>::iterator playerIt = entities.end();
 
   // Inner state
   bool panButtonPressed = false;
@@ -81,14 +89,15 @@ class Editor {
   sf::RectangleShape selection;
   sf::Text selectionText{font, "", 25};
   sf::RectangleShape colliderFrame;
-  // sf::RectangleShape playerRect;
-  // sf::Text playerText;
+  sf::RectangleShape entityFrame;
+  std::vector<sf::Text> entityTexts;
 
   Background background;
   std::unique_ptr<sf::Texture> backgroundTexture;
   std::filesystem::path backgroundTexturePath;
 
-  std::unique_ptr<TileSet> tileset;
+  std::unique_ptr<sf::Texture> tilesetTexture;
+  TileSet tileset;
   std::filesystem::path tilesetPath;
 
   // Auxillary
@@ -122,23 +131,24 @@ class Editor {
   void tilesetSelectWidget();
   void entitiesWidget();
 
+  void spriteWidget(EntityData::Sprite& sprite);
+  void actionWidget(std::optional<ActionData>& action);
+
   void loadWidget();
   void saveWidget();
 
   void load(const std::filesystem::path& path);
+  void save(const std::filesystem::path& path);
 
   void loadBackgroundFile();
   void loadBackground(std::optional<LevelData::Background>& data);
+  void saveBackground(LevelData& data);
 
-  void loadTilemapFile();
+  void loadTilesetFile();
   void loadTilemap(LevelData::Tilemap& data);
+  sf::Vector2i saveTilemap(LevelData& data);
 
   void loadEntities(std::vector<EntityData>& data);
-
-  void save(const std::filesystem::path& path);
-
-  void saveBackground(LevelData& data);
-  sf::Vector2i saveTilemap(LevelData& data);
   void saveEntities(LevelData& data, sf::Vector2i origin);
 
   void draw();

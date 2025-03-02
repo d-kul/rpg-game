@@ -1,18 +1,26 @@
 #pragma once
 
-#include "Entity/Animated.h"
+#include "Entity/Drawable.h"
 #include "Entity/Interactible.h"
 
-class Prop : public AnimatedEntity, public InteractibleEntity {
+class Prop : public DrawableEntity, public InteractibleEntity {
  public:
-  Prop(const TileSet& tileset, const std::vector<int>& frames = {0},
-       float frameRate = 1.f, int startFrameIndex = 0,
+  Prop(const sf::Texture& texture,
+       std::unique_ptr<AbstractSpriteSheet> spriteSheet,
        std::unique_ptr<AbstractAction> action = {})
-      : AnimatedEntity(tileset, frames, frameRate, startFrameIndex),
+      : DrawableEntity(texture, std::move(spriteSheet)),
+        InteractibleEntity(std::move(action)) {}
+  Prop(const sf::Texture& texture,
+       std::unique_ptr<AbstractSpriteSheet> spriteSheet,
+       const std::vector<int>& frames, float frameRate = 1.f,
+       int startFrameIndex = 0, std::unique_ptr<AbstractAction> action = {})
+      : DrawableEntity(texture, std::move(spriteSheet), frames, frameRate,
+                       startFrameIndex),
         InteractibleEntity(std::move(action)) {}
 
-  Prop(const TileSet& tileset, int frame = 0,
+  Prop(const sf::Texture& texture, std::unique_ptr<AbstractAction> action = {})
+      : DrawableEntity(texture), InteractibleEntity(std::move(action)) {}
+  Prop(const sf::Texture& texture, const sf::IntRect& rect,
        std::unique_ptr<AbstractAction> action = {})
-      : AnimatedEntity(tileset, {frame}),
-        InteractibleEntity(std::move(action)) {}
+      : DrawableEntity(texture, rect), InteractibleEntity(std::move(action)) {}
 };

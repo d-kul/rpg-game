@@ -1,17 +1,23 @@
 #include "Player.h"
 
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <cmath>
 
 #include "Game.h"
+#include "Resource/TileSet.h"
 
 Player::Player(float tileSize, float movementSpeed)
+    : Player(*Game::getResourceManager()
+                  .retain<sf::Texture>(  // NOTE(des): a bit hacky but whatever
+                      "resources/images/tilesets/omori.png"),
+             tileSize, movementSpeed) {}
+
+Player::Player(const sf::Texture& texture, float tileSize, float movementSpeed)
     : keybinds(Game::getKeybinds()),
       interactibleManager(Game::getInteractibleManager()),
       colliderManager(Game::getColliderManager()),
-      Actor(*Game::getResourceManager().retain<TileSet>(
-          "resources/images/tilesets/omori.png",
-          32)),  // NOTE(des): a bit hacky but whatever
+      Actor(texture, std::make_unique<TileSet>(texture, 32)),
       tileSize(tileSize),
       movementSpeed(movementSpeed) {
   sprite.setScale({tileSize / 32.f, tileSize / 32.f});
@@ -22,7 +28,7 @@ void Player::update(sf::Time dt) {
   updateInput();
   MovableEntity::update(dt);
   ensureAnimationState();
-  AnimatedEntity::update(dt);
+  DrawableEntity::update(dt);
 }
 
 std::unique_ptr<AbstractAction> Player::updateInteraction() {

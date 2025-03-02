@@ -24,6 +24,7 @@ void Level::loadFromFile(const std::filesystem::path& filename) {
     loadTilemap(data.tilemap);
     loadEntities(data.tilemap, data.entities);
     followPlayer = data.meta.followPlayer;
+    DEBUG("followPlayer:", followPlayer);
   } catch (const std::filesystem::filesystem_error& e) {
     ERROR("failed to load level data from ", filename, ": ", e.what());
     unload();
@@ -50,6 +51,7 @@ void Level::update(sf::Time dt) {
       entity->update(dt);
       continue;
     }
+    player->update(dt);
     if (activeAction) {
       player->Actor::update(dt);
     } else {
@@ -63,7 +65,7 @@ void Level::render(sf::RenderWindow& window) {
   if (followPlayer && player) {
     auto view = window.getView();
     view.setCenter(player->getPosition() +
-                   player->getSprite().getGlobalBounds().getCenter());
+                   player->getLocalBounds().getCenter());
     window.setView(view);
   }
   background.setView(window.getView());
@@ -85,11 +87,11 @@ void Level::loadBackground(std::optional<LevelData::Background>& data) {
 
 void Level::loadTilemap(LevelData::Tilemap& data) {
   if (!data.noTileset) {
-    auto tileset =
-        resourceManager.load<TileSet>(data.tilesetPath, data.tilesetTileSize);
-    tilemap.load(tileset.get(), std::move(data.tiles), data.tileSize,
+    auto tilesetTexture = resourceManager.load<sf::Texture>(data.tilesetPath);
+    TileSet tileset{*tilesetTexture, data.tilesetTileSize};
+    tilemap.load(tileset, std::move(data.tiles), data.tileSize,
                  sf::Vector2u(data.width, data.height));
-    resources.push_back(tileset);
+    resources.push_back(tilesetTexture);
   }
   auto tilemap_collider = std::make_unique<TileMapCollider>();
   tilemap_collider->load(std::move(data.colliders), data.tileSize,

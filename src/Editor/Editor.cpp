@@ -14,6 +14,8 @@
 #include <limits>
 #include <string>
 
+#include "Core/utility.h"
+
 using namespace std::literals;
 
 Editor::Editor()
@@ -40,6 +42,11 @@ Editor::Editor()
   colliderFrame.setOutlineThickness(2.f);
   colliderFrame.setOutlineColor(colliderFrameColor);
   colliderFrame.setSize(gridTileSize);
+
+  entityFrame.setFillColor(sf::Color::Transparent);
+  entityFrame.setOutlineThickness(2.f);
+  entityFrame.setOutlineColor(entityFrameColor);
+  entityFrame.setSize(gridTileSize);
 
   zeroPoint.setRadius(3.f);
   zeroPoint.setOrigin(zeroPoint.getGeometricCenter());
@@ -86,7 +93,20 @@ void Editor::setSelect(SelectState state) {
     case SelectState::Entity:
       selection.setOutlineColor(entitySelectColor);
       selectionText.setFillColor(entitySelectColor);
-      selectionText.setString("Entity");
+      if (!selectedEntity) {
+        selectionText.setString("None");
+        break;
+      }
+      std::visit(overloaded{[&](EntityData::Player& player) {
+                              selectionText.setString("Player");
+                            },
+                            [&](EntityData::Character& character) {
+                              selectionText.setString("Character");
+                            },
+                            [&](EntityData::Prop& prop) {
+                              selectionText.setString("Prop");
+                            }},
+                 selectedEntity->data);
       break;
   }
   auto bounds = selectionText.getLocalBounds();
@@ -98,7 +118,7 @@ bool Editor::isSelected(SelectState state) { return selectState == state; }
 
 void Editor::setTile(sf::Vector2i position, int tile) {
   auto element =
-      std::make_pair(tile, sf::Sprite(*tileset, tileset->getTileRect(tile)));
+      std::make_pair(tile, sf::Sprite(*tilesetTexture, tileset.getRect(tile)));
   element.second.setPosition(
       sf::Vector2f{position}.componentWiseMul(gridTileSize));
   element.second.setScale(gridTileSize.componentWiseDiv(
@@ -182,6 +202,7 @@ void Editor::handleScaling(sf::Event event) {
     selection.setOutlineThickness(factor * selection.getOutlineThickness());
     colliderFrame.setOutlineThickness(factor *
                                       colliderFrame.getOutlineThickness());
+    entityFrame.setOutlineThickness(factor * entityFrame.getOutlineThickness());
     selectionText.scale({factor, factor});
     zeroPoint.setRadius(factor * zeroPoint.getRadius());
     zeroPoint.setOrigin(zeroPoint.getGeometricCenter());
@@ -224,6 +245,17 @@ void Editor::handleTiles(sf::Event event) {
         setTile(position, selectedTile);
       else
         eraseTile(position);
+    } else if (isSelected(SelectState::Entity)) {
+      if (placeTile && selectedEntity) {
+        std::visit(
+            overloaded{
+                [&](EntityData::Player& player) { player.position = position; },
+                [&](EntityData::Character& character) {
+                  character.position = position;
+                },
+                [&](EntityData::Prop& prop) { prop.position = position; }},
+            selectedEntity->data);
+      }
     }
   }
 }
@@ -234,12 +266,11 @@ void Editor::handleKeys(sf::Event event) {
   if (keyReleased->code == sf::Keyboard::Key::Q) paintTiles = !paintTiles;
   if (keyReleased->code == sf::Keyboard::Key::E)
     setSelect(SelectState::Collider);
-  if (!tileset) return;
+  if (!tilesetTexture) return;
   if (keyReleased->code == sf::Keyboard::Key::Tab && selectedTile != -1) {
     int nextTile = selectedTile + (keyReleased->shift ? -1 : 1);
-    selectedTile = std::min<int>(
-        std::max(nextTile, 0), (tileset->getSize().x / tileset->tileSize) *
-                                   (tileset->getSize().y / tileset->tileSize));
+    selectedTile =
+        std::min<int>(std::max(nextTile, 0), tileset.getRectAmount());
   }
 }
 
@@ -337,7 +368,7 @@ void Editor::tilesetLoadWidget() {
   ImGui::DragInt("Tile size", &tilesetTileSize, 1.f, 1, INT_MAX);
   if (ImGui::Button("Load")) {
     try {
-      loadTilemapFile();
+      loadTilesetFile();
     } catch (sf::Exception e) {
       tilesetPopupText = e.what();
       ImGui::OpenPopup("TilesetLoadPopup");
@@ -353,8 +384,8 @@ void Editor::tilesetLoadWidget() {
 }
 
 void Editor::tilesetSelectWidget() {
-  if (!tileset) return;
-  auto [w, h] = tileset->getSize() / tileset->tileSize;
+  if (!tilesetTexture) return;
+  auto [w, h] = tileset.getSize();
 
   static constexpr ImVec2 selectableSize = {40, 40};
   static constexpr float selectableImagePadding = 0.f;
@@ -376,7 +407,7 @@ void Editor::tilesetSelectWidget() {
     for (unsigned j = 0; j < w; j++) {
       auto idx = i * h + j;
       ImGui::PushID(idx);
-      selectableTileSprite->setTextureRect(tileset->getTileRect(idx));
+      selectableTileSprite->setTextureRect(tileset.getRect(idx));
       auto cursorPos = ImGui::GetCursorPos();
       if (CustomSelectable(
               "", isSelected(SelectState::Tile) && selectedTile == idx,
@@ -401,7 +432,112 @@ void Editor::tilesetSelectWidget() {
   ImGui::EndChild();
 }
 
-void Editor::entitiesWidget() { ImGui::Text("select entities"); }
+void Editor::entitiesWidget() {
+  bool noPlayer = playerIt == entities.end();
+  ImGui::AlignTextToFramePadding();
+  ImGui::Text("Add:");
+  ImGui::SameLine();
+  if (!noPlayer) ImGui::BeginDisabled();
+  sf::Text* addedText = nullptr;
+  EntityData* addedEntity = nullptr;
+  if (ImGui::Button("Player")) {
+    playerIt = entities.emplace(entities.end(), EntityData::Player{});
+    addedEntity = &*playerIt;
+    addedText = &entityTexts.emplace_back(font, "Player", 20);
+  }
+  ImGui::SameLine();
+  if (!noPlayer) ImGui::EndDisabled();
+  if (ImGui::Button("Character")) {
+    addedEntity = &entities.emplace_back(EntityData::Character{});
+    addedText = &entityTexts.emplace_back(font, "Character", 20);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Prop")) {
+    addedEntity = &entities.emplace_back(EntityData::Prop{});
+    addedText = &entityTexts.emplace_back(font, "Prop", 20);
+  }
+  if (addedEntity) {
+    selectedEntity = addedEntity;
+    setSelect(SelectState::Entity);
+    addedText->setOrigin(addedText->getGlobalBounds().getCenter());
+    float factor = (gridTileSize.x - 5.f) / addedText->getLocalBounds().size.x;
+    addedText->setScale({factor, factor});
+    addedText->setFillColor(entityFrameColor);
+  }
+
+  ImGui::SetNextWindowSizeConstraints(ImVec2(0.f, 0.f), ImVec2(FLT_MAX, 500.f));
+  ImGui::BeginChild("Entities", {0, 0},
+                    ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY);
+
+  int i = 0;
+  for (auto it = entities.begin(); it != entities.end();) {
+    auto& entity = *it;
+    auto name = std::visit(
+        overloaded{[](EntityData::Player& player) { return "Player"; },
+                   [](EntityData::Character& character) { return "Character"; },
+                   [](EntityData::Prop& prop) { return "Prop"; }},
+        entity.data);
+    bool deleteEntity = false;
+
+    ImGuiTreeNodeFlags node_flags =
+        ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    if (isSelected(SelectState::Entity) && selectedEntity == &entity)
+      node_flags |= ImGuiTreeNodeFlags_Selected;
+    ImGui::PushID(&entity);
+    bool node_open = ImGui::TreeNodeEx("", node_flags, "%d. %s", i + 1, name);
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+      selectedEntity = &entity;
+      setSelect(SelectState::Entity);
+    }
+    if (node_open) {
+      if (ImGui::Button("Delete")) {
+        deleteEntity = true;
+      }
+      std::visit(overloaded{[&](EntityData::Player& player) {
+                              ImGui::Text("Position: %d,%d", player.position.x,
+                                          player.position.y);
+                            },
+                            [&](EntityData::Character& character) {
+                              ImGui::Text("Position: %d,%d",
+                                          character.position.x,
+                                          character.position.y);
+                              spriteWidget(character.sprite);
+                              actionWidget(character.action);
+                            },
+                            [&](EntityData::Prop& prop) {
+                              ImGui::Text("Position: %d,%d", prop.position.x,
+                                          prop.position.y);
+                              spriteWidget(prop.sprite);
+                              actionWidget(prop.action);
+                            }},
+                 entity.data);
+      ImGui::TreePop();
+    }
+    ImGui::PopID();
+    if (deleteEntity) {
+      if (it == playerIt) {
+        playerIt = entities.end();
+      }
+      if (isSelected(SelectState::Entity) && &entity == selectedEntity) {
+        selectedEntity = nullptr;
+        setSelect(SelectState::Entity);
+      }
+      it = entities.erase(it);
+      entityTexts.erase(entityTexts.begin() + i);
+    } else {
+      ++it;
+    }
+    i++;
+  }
+
+  ImGui::EndChild();
+}
+
+void Editor::spriteWidget(EntityData::Sprite& sprite) { ImGui::Text("sprite"); }
+
+void Editor::actionWidget(std::optional<ActionData>& action) {
+  ImGui::Text("action");
+}
 
 void Editor::loadWidget() {
   ImGui::SeparatorText("Loading");
@@ -442,6 +578,7 @@ void Editor::saveWidget() {
 
 void Editor::load(const std::filesystem::path& filename) {
   std::ifstream in(filename);
+  // TODO(des): make it roll back to previous state on exception
   try {
     LevelData data = LevelData::load(in);
     loadBackground(data.background);
@@ -456,6 +593,22 @@ void Editor::load(const std::filesystem::path& filename) {
         "failed to load level data from " + filename.string() + ": " + e.what();
   }
   ImGui::OpenPopup("LoadPopup");
+}
+
+void Editor::save(const std::filesystem::path& filename) {
+  std::ofstream out(filename);
+  try {
+    LevelData data;
+    saveBackground(data);
+    sf::Vector2i origin = saveTilemap(data);
+    saveEntities(data, origin);
+    data.save(out);
+    savePopupText = "Saved successfully";
+  } catch (const std::runtime_error& e) {
+    savePopupText =
+        "failed to save level data to " + filename.string() + ": " + e.what();
+  }
+  ImGui::OpenPopup("SavePopup");
 }
 
 void Editor::loadBackgroundFile() {
@@ -499,21 +652,32 @@ void Editor::loadBackground(std::optional<LevelData::Background>& data) {
   }
 }
 
-void Editor::loadTilemapFile() {
-  tileset = std::make_unique<TileSet>(tilesetPathBuf, tilesetTileSize);
+void Editor::saveBackground(LevelData& data) {
+  if (noBackground || backgroundTexturePath.empty()) return;
+  data.background.emplace();
+  data.background->texturePath = backgroundTexturePath;
+  data.background->repeated = backgroundRepeated;
+  data.background->moving = backgroundMoving;
+  data.background->size = {backgroundSize[0], backgroundSize[1]};
+}
+
+void Editor::loadTilesetFile() {
+  tilesetTexture = std::make_unique<sf::Texture>(tilesetPathBuf);
+  tileset.setTexture(*tilesetTexture);
+  tileset.tileSize.x = tileset.tileSize.y = tilesetTileSize;
   tilesetPath = tilesetPathBuf;
   selectedTile = -1;
   tiles.clear();
   if (selectableTileSprite) {
-    selectableTileSprite->setTexture(*tileset);
+    selectableTileSprite->setTexture(*tilesetTexture);
   } else {
-    selectableTileSprite = std::make_unique<sf::Sprite>(*tileset);
+    selectableTileSprite = std::make_unique<sf::Sprite>(*tilesetTexture);
   }
 }
 
 void Editor::loadTilemap(LevelData::Tilemap& data) {
   if (data.noTileset) {
-    tileset.reset();
+    tilesetTexture.reset();
     tilesetPath.clear();
     selectedTile = -1;
     tiles.clear();
@@ -523,7 +687,7 @@ void Editor::loadTilemap(LevelData::Tilemap& data) {
     try {
       tilesetTileSize = data.tilesetTileSize;
       tilesetPathBuf = data.tilesetPath;
-      loadTilemapFile();
+      loadTilesetFile();
     } catch (...) {
       tilesetTileSize = prevTilesetTileSize;
       tilesetPathBuf = prevTilesetPathBuf;
@@ -537,34 +701,6 @@ void Editor::loadTilemap(LevelData::Tilemap& data) {
       if (data.colliders[i * data.width + j]) setCollider({i, j});
     }
   }
-}
-
-void Editor::loadEntities(std::vector<EntityData>& data) {
-  // TODO(des): uhhh...
-}
-
-void Editor::save(const std::filesystem::path& filename) {
-  std::ofstream out(filename);
-  try {
-    LevelData data;
-    saveBackground(data);
-    sf::Vector2i origin = saveTilemap(data);
-    saveEntities(data, origin);
-    data.save(out);
-    savePopupText = "Saved successfully";
-  } catch (const std::runtime_error& e) {
-    savePopupText =
-        "failed to save level data to " + filename.string() + ": " + e.what();
-  }
-  ImGui::OpenPopup("SavePopup");
-}
-
-void Editor::saveBackground(LevelData& data) {
-  if (noBackground || backgroundTexturePath.empty()) return;
-  data.background->texturePath = backgroundTexturePath;
-  data.background->repeated = backgroundRepeated;
-  data.background->moving = backgroundMoving;
-  data.background->size = {backgroundSize[0], backgroundSize[1]};
 }
 
 sf::Vector2i Editor::saveTilemap(LevelData& data) {
@@ -596,11 +732,13 @@ sf::Vector2i Editor::saveTilemap(LevelData& data) {
       colliders.empty() ? std::numeric_limits<int>::min() : max_c_y_it->second);
   int width = tiles.empty() && colliders.empty() ? 0 : max_x - min_x + 1;
   int height = tiles.empty() && colliders.empty() ? 0 : max_y - min_y + 1;
-  data.tilemap.noTileset = !tileset || tiles.empty();
+  data.tilemap.noTileset = !tilesetTexture || tiles.empty();
   data.tilemap.tileSize = saveTileSize;
   if (!data.tilemap.noTileset) {
     data.tilemap.tilesetPath = tilesetPath;
-    data.tilemap.tilesetTileSize = tileset->tileSize;
+    data.tilemap.tilesetTileSize =
+        tileset.tileSize
+            .x;  // NOTE: should non-square tiles be really supported?
     data.tilemap.tiles.resize(width * height);
   }
   data.tilemap.colliders.resize(width * height);
@@ -616,11 +754,35 @@ sf::Vector2i Editor::saveTilemap(LevelData& data) {
       data.tilemap.colliders[i * width + j] = colliders.count({x, y});
     }
   }
+  if (width == 0 && height == 0) return {0, 0};
   return {min_x, min_y};
+}
+
+void Editor::loadEntities(std::vector<EntityData>& data) {
+  // TODO(des): uhhh...
+  for (auto& entity : data) {
+    entities.emplace_back(entity);
+    // TODO(des): add entity
+  }
 }
 
 void Editor::saveEntities(LevelData& data, sf::Vector2i origin) {
   // TODO(des): ugh...
+  for (auto& entity : entities) {
+    std::visit(overloaded{[&](EntityData::Player player) {
+                            player.position -= origin;
+                            data.entities.emplace_back(std::move(player));
+                          },
+                          [&](EntityData::Character character) {
+                            character.position -= origin;
+                            data.entities.emplace_back(std::move(character));
+                          },
+                          [&](EntityData::Prop prop) {
+                            prop.position -= origin;
+                            data.entities.emplace_back(std::move(prop));
+                          }},
+               entity.data);
+  }
 }
 
 void Editor::draw() {
@@ -629,6 +791,37 @@ void Editor::draw() {
   window.draw(sparseGrid);
   for (auto& [coords, tile] : tiles) {
     window.draw(tile.second);
+  }
+  int i = 0;
+  for (auto& entity : entities) {
+    std::visit(
+        overloaded{
+            [&](EntityData::Player& player) {
+              entityFrame.setPosition(
+                  sf::Vector2f{player.position}.componentWiseMul(gridTileSize));
+            },
+            [&](EntityData::Character& character) {
+              entityFrame.setPosition(
+                  sf::Vector2f{character.position}.componentWiseMul(
+                      gridTileSize));
+            },
+            [&](EntityData::Prop& prop) {
+              entityFrame.setPosition(
+                  sf::Vector2f{prop.position}.componentWiseMul(gridTileSize));
+            }},
+        entity.data);
+    if (selectedEntity == &entity) {
+      entityFrame.setOutlineColor(entityFrameSelectedColor);
+      entityTexts[i].setFillColor(entityFrameSelectedColor);
+    } else {
+      entityFrame.setOutlineColor(entityFrameColor);
+      entityTexts[i].setFillColor(entityFrameColor);
+    }
+    window.draw(entityFrame);
+    sf::RenderStates states = sf::RenderStates::Default;
+    states.transform.translate(entityFrame.getPosition() + gridTileSize / 2.f);
+    window.draw(entityTexts[i], states);
+    i++;
   }
   for (auto& coords : colliders) {
     colliderFrame.setPosition(
