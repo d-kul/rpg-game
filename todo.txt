@@ -3,7 +3,6 @@ x entity component system (ditched)
 x generic event handler
 x render by game states
 x ditch the EnTT dependency because of the time crunch
-x game singleton
 x signal connection RAII guard
 x resource manager class
 x logger
@@ -28,18 +27,18 @@ x sprite sheet hirearchy
 x entity menu level editor
 x action data class
 x fix full screen wrong resolution issue
-x button class
+x ui button class
+x ui combobox class
 x ui library
 x ui rendering
+x settings menu
 x loading settings
 x loading levels
 x add license
 action processing in game
 action menu in editor
 think about how to implement text state machine through actions
-dialog box
-ui control elements (not only the button)
-settings menu
+x dialog box
 saving settings
 loading entities in levels
 build for multiple platforms

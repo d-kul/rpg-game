@@ -5,25 +5,29 @@
 #include <SFML/Window/Event.hpp>
 #include <unordered_map>
 
-#include "Manager/Event.h"
 #include "UI/Element.h"
 
 class UIManager {
  public:
-  UIManager();
-  void init();
+  using states_t = std::unordered_map<std::string, std::unique_ptr<UIElement>>;
+
+ public:
+  UIManager(sf::RenderWindow& window);
+  void init(sf::Vector2u windowSize);
   void handleEvent(sf::Event event);
-  void setActiveState(std::string s = {});
+  void setActiveState(const std::string& s = {});
   bool hasActiveState();
+  const std::string& getActiveStateName();
+  void setView(sf::View view);
   void render();
 
  public:
-  std::unordered_map<std::string, std::unique_ptr<UIElement>> states;
+  states_t states;
 
  private:
   sf::RenderWindow& window;
-  EventManager& eventManager;
   sf::View view;
+
   UIElement* activeState = nullptr;
-  std::string activeStateName;
+  const std::string* activeStateName = nullptr;
 };

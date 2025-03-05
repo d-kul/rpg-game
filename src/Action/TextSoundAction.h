@@ -2,7 +2,7 @@
 
 #include "Action.h"
 
-class TextSoundAction : public Action<TextSoundAction> {
+class TextSoundAction : public Action {
  public:
   
 };

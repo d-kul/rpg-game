@@ -5,22 +5,23 @@
 
 class Prop : public DrawableEntity, public InteractibleEntity {
  public:
-  Prop(const sf::Texture& texture,
+  Prop(const sf::Texture& texture, InteractibleManager& manager,
        std::unique_ptr<AbstractSpriteSheet> spriteSheet,
-       std::unique_ptr<AbstractAction> action = {})
+       Action* action = nullptr)
       : DrawableEntity(texture, std::move(spriteSheet)),
-        InteractibleEntity(std::move(action)) {}
-  Prop(const sf::Texture& texture,
+        InteractibleEntity(manager, action) {}
+  Prop(const sf::Texture& texture, InteractibleManager& manager,
        std::unique_ptr<AbstractSpriteSheet> spriteSheet,
        const std::vector<int>& frames, float frameRate = 1.f,
-       int startFrameIndex = 0, std::unique_ptr<AbstractAction> action = {})
+       int startFrameIndex = 0, Action* action = nullptr)
       : DrawableEntity(texture, std::move(spriteSheet), frames, frameRate,
                        startFrameIndex),
-        InteractibleEntity(std::move(action)) {}
+        InteractibleEntity(manager, action) {}
 
-  Prop(const sf::Texture& texture, std::unique_ptr<AbstractAction> action = {})
-      : DrawableEntity(texture), InteractibleEntity(std::move(action)) {}
-  Prop(const sf::Texture& texture, const sf::IntRect& rect,
-       std::unique_ptr<AbstractAction> action = {})
-      : DrawableEntity(texture, rect), InteractibleEntity(std::move(action)) {}
+  Prop(const sf::Texture& texture, InteractibleManager& manager,
+       Action* action = nullptr)
+      : DrawableEntity(texture), InteractibleEntity(manager, action) {}
+  Prop(const sf::Texture& texture, InteractibleManager& manager,
+       const sf::IntRect& rect, Action* action = nullptr)
+      : DrawableEntity(texture, rect), InteractibleEntity(manager, action) {}
 };

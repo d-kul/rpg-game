@@ -7,6 +7,7 @@
 
 #include "Core/utility.h"
 #include "Entity/Actor.h"
+#include "Game.h"
 #include "Manager/Collider.h"
 #include "Manager/Interactible.h"
 
@@ -18,12 +19,12 @@ class Player : public Actor {
   static constexpr float RUNNING_FACTOR = 1.5f;
 
  public:
-  Player(float tileSize = 64.f, float movementSpeed = 300.f);
-  Player(const sf::Texture& texture, float tileSize = 64.f,
+  Player(Game& game, float tileSize = 64.f, float movementSpeed = 300.f);
+  Player(Game& game, const sf::Texture& texture, float tileSize = 64.f,
          float movementSpeed = 300.f);
 
   void update(sf::Time dt) override;
-  std::unique_ptr<AbstractAction> updateInteraction();
+  Action* updateInteraction();
 
  private:
   void updateInput();

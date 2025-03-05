@@ -1,12 +1,9 @@
 #include "Interactible.h"
 
-#include "Game.h"
-
-InteractibleEntity::InteractibleEntity(std::unique_ptr<AbstractAction> action)
-    : action(std::move(action)) {
-  Game::getInteractibleManager().elements.insert(this);
+InteractibleEntity::InteractibleEntity(InteractibleManager& manager,
+                                       Action* action)
+    : action(action), manager(manager) {
+  manager.addInteractible(*this);
 }
 
-InteractibleEntity::~InteractibleEntity() {
-  Game::getInteractibleManager().elements.erase(this);
-}
+InteractibleEntity::~InteractibleEntity() { manager.removeInteractible(*this); }

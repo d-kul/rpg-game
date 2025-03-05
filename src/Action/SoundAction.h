@@ -3,12 +3,19 @@
 #include <SFML/Audio/SoundBuffer.hpp>
 
 #include "../Action.h"
+#include "Manager/Audio.h"
 
-class SoundAction : public Action<SoundAction> {
+class SoundAction : public Action {
  public:
-  SoundAction(sf::SoundBuffer* buffer = nullptr) : buffer(buffer) {}
-  void start() override;
+  SoundAction(AudioManager& manager, sf::SoundBuffer* buffer = nullptr)
+      : manager(manager), buffer(buffer) {}
+  void start() override {
+    if (buffer) {
+      manager.playSound(*buffer);
+    }
+  }
 
  private:
+  AudioManager& manager;
   sf::SoundBuffer* buffer;
 };

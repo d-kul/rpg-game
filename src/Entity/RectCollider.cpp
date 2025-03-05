@@ -1,6 +1,7 @@
 #include "RectCollider.h"
 
-RectCollider::RectCollider(sf::FloatRect rect) : rect(rect) {}
+RectCollider::RectCollider(ColliderManager& manager, sf::FloatRect rect)
+    : Collider(manager), rect(rect) {}
 
 void RectCollider::setRect(sf::FloatRect rect) { this->rect = rect; }
 

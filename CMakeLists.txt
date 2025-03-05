@@ -75,6 +75,8 @@ add_executable(game
   src/UI/Text.cpp
   src/UI/Button.h
   src/UI/Button.cpp
+  src/UI/Combo.h
+  src/UI/Combo.cpp
   src/Action.h
   src/Action.cpp
   src/Action/FadeInAction.h
@@ -94,7 +96,6 @@ add_executable(game
   src/Action/TextRateAction.h
   src/Action/CharIconAction.h
   src/Action/SoundAction.h
-  src/Action/SoundAction.cpp
   src/Action/AnimationAction.h
   src/Action/MusicStopAction.h
   src/Action/WaitInputAction.h
@@ -143,6 +144,12 @@ add_executable(game
 target_include_directories(game PRIVATE src)
 target_compile_features(game PRIVATE cxx_std_17)
 target_link_libraries(game PRIVATE SFML::Audio SFML::Graphics)
+
+add_executable(test 
+  src/test.cpp)
+target_include_directories(test PRIVATE src)
+target_compile_features(test PRIVATE cxx_std_17)
+target_link_libraries(test PRIVATE SFML::Audio SFML::Graphics)
 
 add_executable(editor 
   src/Core/Logger.h

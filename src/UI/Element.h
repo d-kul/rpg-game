@@ -9,17 +9,21 @@
 
 class UIElement : public sf::Transformable, public sf::Drawable {
  public:
+  using children_t = std::vector<std::unique_ptr<UIElement>>;
+ public:
   virtual ~UIElement() {}
 
-  virtual void handleEvent(sf::Event event) {}
-  void addChild(std::unique_ptr<UIElement>&& child);
+  virtual bool handleEvent(sf::Event event) { return false; }
+  void addChild(std::unique_ptr<UIElement> child);
+  const children_t& getChildren() const;
 
  protected:
-  void handleChildrenEvent(sf::Event event);
+  bool handleChildrenEvent(sf::Event event);
   void drawChildren(sf::RenderTarget& target, sf::RenderStates states) const;
-  sf::Transform getGlobalTransform();
+  sf::Transform getGlobalTransform() const;
+  bool pointInside(sf::FloatRect localRect, sf::Vector2i point) const;
 
  protected:
   UIElement* parent = nullptr;
-  std::vector<std::unique_ptr<UIElement>> children;
+  children_t children;
 };

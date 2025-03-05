@@ -2,6 +2,9 @@
 
 #include <cmath>
 
+TileMapCollider::TileMapCollider(ColliderManager& manager)
+    : Collider(manager) {}
+
 void TileMapCollider::load(std::vector<bool> tileColliderMap, float tileSize,
                            sf::Vector2u size) {
   this->tileColliderMap = std::move(tileColliderMap);

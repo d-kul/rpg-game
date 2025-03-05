@@ -2,7 +2,7 @@
 
 #include "Action.h"
 
-class FadeOutAction : public Action<FadeOutAction> {
+class FadeOutAction : public Action {
  public:
   
 };

@@ -2,7 +2,7 @@
 
 #include "Action.h"
 
-class WaitAction : public Action<WaitAction> {
+class WaitAction : public Action {
  public:
   
 };

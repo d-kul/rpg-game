@@ -8,7 +8,7 @@ class Collider;
 
 class Collider {
  public:
-  Collider();
+  Collider(ColliderManager& manager);
   virtual ~Collider();
 
   virtual bool checkCollision(sf::Vector2f point) = 0;

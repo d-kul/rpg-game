@@ -2,7 +2,7 @@
 
 #include "Action.h"
 
-class TextAction : public Action<TextAction> {
+class TextAction : public Action {
  public:
   
 };

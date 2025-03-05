@@ -217,5 +217,3 @@ const key_storage_t Game::key_storage = {
     {sf::Keyboard::Key::F15, "F15"},
     {sf::Keyboard::Key::Pause, "Pause"},
 };
-
-Game Game::instance{};

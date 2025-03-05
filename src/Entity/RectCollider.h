@@ -6,7 +6,7 @@
 
 class RectCollider : public Collider {
  public:
-  RectCollider(sf::FloatRect rect = {});
+  RectCollider(ColliderManager& manager, sf::FloatRect rect = {});
 
   void setRect(sf::FloatRect rect);
   bool checkCollision(sf::Vector2f point) override;

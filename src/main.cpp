@@ -1,6 +1,6 @@
 #include "Game.h"
 
 int main() {
-  Game& game = Game::getInstance();
+  Game game;
   game.run();
 }

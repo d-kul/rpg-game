@@ -1,34 +1,35 @@
 #include "UI.h"
 
 #include "Core/Logger.h"
-#include "Game.h"
 
-UIManager::UIManager()
-    : window(Game::getWindow()), eventManager(Game::getEventManager()) {}
+UIManager::UIManager(sf::RenderWindow& window) : window(window) {}
 
-void UIManager::init() {
-  auto& window_size = Game::getWindowSize();
-  view.setCenter(sf::Vector2f{window_size} / 2.f);
-  view.setSize(sf::Vector2f{window_size});
+void UIManager::init(sf::Vector2u windowSize) {
+  view.setCenter(sf::Vector2f{windowSize} / 2.f);
+  view.setSize(sf::Vector2f{windowSize});
 }
 
 void UIManager::handleEvent(sf::Event event) {
   if (activeState) activeState->handleEvent(event);
 }
 
-void UIManager::setActiveState(std::string s) {
+void UIManager::setActiveState(const std::string& s) {
   if (s.empty()) {
-    activeState = nullptr; 
-    activeStateName.clear();
+    activeState = nullptr;
+    activeStateName = nullptr;
   } else if (auto it = states.find(s); it != states.end()) {
     activeState = it->second.get();
-    activeStateName = std::move(s);
+    activeStateName = &it->first;
   } else {
     ERROR("state \"", s, "\" has not been found");
   }
 }
 
 bool UIManager::hasActiveState() { return activeState != nullptr; }
+
+const std::string& UIManager::getActiveStateName() { return *activeStateName; }
+
+void UIManager::setView(sf::View view) { this->view = view; }
 
 void UIManager::render() {
   if (!activeState) return;

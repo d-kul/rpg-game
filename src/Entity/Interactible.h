@@ -6,17 +6,20 @@
 #include "Action.h"
 #include "Entity.h"
 
+class InteractibleEntity;
+
+#include "Manager/Interactible.h"
+
 class InteractibleEntity : public virtual Entity {
  public:
-  InteractibleEntity(std::unique_ptr<AbstractAction> action = {});
+  InteractibleEntity(InteractibleManager& manager, Action* action = nullptr);
   ~InteractibleEntity();
 
-  void setAction(std::unique_ptr<AbstractAction> action) {
-    this->action = std::move(action);
-  }
+  void setAction(Action* action) { this->action = action; }
 
  protected:
-  std::unique_ptr<AbstractAction> action;
+  Action* action;
+  InteractibleManager& manager;
 
   friend class InteractibleManager;
 };

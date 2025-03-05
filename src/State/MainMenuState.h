@@ -8,6 +8,8 @@
 
 class MainMenuState : public State {
  public:
+  MainMenuState(Game& game);
+
   // State lifetime
   void enter() override;
   void exit() override;
@@ -18,7 +20,11 @@ class MainMenuState : public State {
 
  private:
   void initUI();
+  void resizeUpdateUI();
 
  private:
   Background background;
+
+  UIElement* mainMiddle = nullptr;
+  UIElement* settingsMiddle = nullptr;
 };

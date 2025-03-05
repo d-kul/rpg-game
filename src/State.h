@@ -2,16 +2,14 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Core/utility.h"
-#include "Manager/Audio.h"
-#include "Manager/Event.h"
-#include "Manager/Resource.h"
-#include "Manager/UI.h"
+class State;
+
+#include "Game.h"
 
 class State {
  public:
   // Constructors, destructor
-  State();
+  State(Game& game);
   virtual ~State();
 
   // State lifetime
@@ -23,15 +21,7 @@ class State {
   virtual void render();
 
  protected:
-  // Bindings
-  keybinds_t& keybinds;
-  sf::RenderWindow& window;
-  sf::Vector2u& windowSize;
-
-  EventManager& eventManager;
-  ResourceManager& resourceManager;
-  AudioManager& audioManager;
-  UIManager& uiManager;
+  Game& game;
 
  public:
   State* next_state = nullptr;

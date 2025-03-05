@@ -10,7 +10,7 @@
 #include "Entity/TileMapCollider.h"
 #include "Game.h"
 
-Level::Level() : resourceManager(Game::getResourceManager()) {}
+Level::Level(Game& game) : game(game) {}
 
 void Level::loadFromFile(const std::filesystem::path& filename) {
   unload();
@@ -42,7 +42,7 @@ void Level::unload() {
   resources.clear();
   background.unsetTexture();
   player = nullptr;
-  activeAction.reset();  // NOTE(des): what if the action needs to end?
+  activeAction = nullptr;
 }
 
 void Level::update(sf::Time dt) {
@@ -58,7 +58,7 @@ void Level::update(sf::Time dt) {
       activeAction = player->updateInteraction();
     }
   }
-  AbstractAction::update(activeAction, dt);
+  Action::update(activeAction, dt);
 }
 
 void Level::render(sf::RenderWindow& window) {
@@ -78,7 +78,7 @@ void Level::render(sf::RenderWindow& window) {
 
 void Level::loadBackground(std::optional<LevelData::Background>& data) {
   if (!data) return;
-  auto texture = resourceManager.load<sf::Texture>(data->texturePath);
+  auto texture = game.resourceManager.load<sf::Texture>(data->texturePath);
   background.setTexture(texture.get(), data->size);
   texture->setRepeated(data->repeated);
   background.setMoving(data->moving);
@@ -87,13 +87,14 @@ void Level::loadBackground(std::optional<LevelData::Background>& data) {
 
 void Level::loadTilemap(LevelData::Tilemap& data) {
   if (!data.noTileset) {
-    auto tilesetTexture = resourceManager.load<sf::Texture>(data.tilesetPath);
+    auto tilesetTexture =
+        game.resourceManager.load<sf::Texture>(data.tilesetPath);
     TileSet tileset{*tilesetTexture, data.tilesetTileSize};
     tilemap.load(tileset, std::move(data.tiles), data.tileSize,
                  sf::Vector2u(data.width, data.height));
     resources.push_back(tilesetTexture);
   }
-  auto tilemap_collider = std::make_unique<TileMapCollider>();
+  auto tilemap_collider = std::make_unique<TileMapCollider>(game.colliderManager);
   tilemap_collider->load(std::move(data.colliders), data.tileSize,
                          sf::Vector2u(data.width, data.height));
   colliders.push_back(std::move(tilemap_collider));
@@ -105,7 +106,8 @@ void Level::loadEntities(LevelData::Tilemap& tilemap,
     std::visit(
         overloaded{[&](EntityData::Player
                            data) {  // TODO(des): add support for movementSpeed
-                     auto player = std::make_unique<Player>(tilemap.tileSize);
+                     auto player =
+                         std::make_unique<Player>(game, tilemap.tileSize);
                      player->setPosition(sf::Vector2f{data.position} *
                                          tilemap.tileSize);
                      player->setDestination(sf::Vector2f{data.position} *

@@ -2,7 +2,7 @@
 
 #include "Action.h"
 
-class ColliderAction : public Action<ColliderAction> {
+class ColliderAction : public Action {
  public:
   
 };

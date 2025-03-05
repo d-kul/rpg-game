@@ -2,7 +2,7 @@
 
 #include "Action.h"
 
-class MultipleAction : public Action<MultipleAction> {
+class MultipleAction : public Action {
  public:
   
 };

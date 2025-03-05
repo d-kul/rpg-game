@@ -296,7 +296,7 @@ static bool CustomSelectable(const char* label, bool selected,
 void Editor::widgets() {
   static constexpr ImVec2 selectableSize = {50, 50};
 
-  ImGui::Begin("Resources");
+  ImGui::Begin("Level editor");
   widgetWindowRect.position = ImGui::GetWindowPos();
   widgetWindowRect.size = ImGui::GetWindowSize();
   ImGui::Checkbox("Paint tiles (Q)", &paintTiles);
@@ -310,13 +310,21 @@ void Editor::widgets() {
       backgroundWidget();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("TileSet")) {
+    if (ImGui::BeginTabItem("Tile set")) {
       tilesetLoadWidget();
       tilesetSelectWidget();
       ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Entities")) {
       entitiesWidget();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem("Sprite sheets")) {
+      spriteSheetsWidget();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem("Actions")) {
+      actionsWidget();
       ImGui::EndTabItem();
     }
     ImGui::EndTabBar();
@@ -479,20 +487,23 @@ void Editor::entitiesWidget() {
         entity.data);
     bool deleteEntity = false;
 
-    ImGuiTreeNodeFlags node_flags =
-        ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow |
+                                    ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                                    ImGuiTreeNodeFlags_SpanTextWidth;
     if (isSelected(SelectState::Entity) && selectedEntity == &entity)
       node_flags |= ImGuiTreeNodeFlags_Selected;
     ImGui::PushID(&entity);
-    bool node_open = ImGui::TreeNodeEx("", node_flags, "%d. %s", i + 1, name);
+    bool node_open =
+        ImGui::TreeNodeEx("", node_flags, "%s @ %p", name, &entity);
     if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
       selectedEntity = &entity;
       setSelect(SelectState::Entity);
     }
+    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+    if (ImGui::SmallButton("Delete")) {
+      deleteEntity = true;
+    }
     if (node_open) {
-      if (ImGui::Button("Delete")) {
-        deleteEntity = true;
-      }
       std::visit(overloaded{[&](EntityData::Player& player) {
                               ImGui::Text("Position: %d,%d", player.position.x,
                                           player.position.y);
@@ -537,6 +548,14 @@ void Editor::spriteWidget(EntityData::Sprite& sprite) { ImGui::Text("sprite"); }
 
 void Editor::actionWidget(std::optional<ActionData>& action) {
   ImGui::Text("action");
+}
+
+void Editor::spriteSheetsWidget() {
+  ImGui::Text("sprite sheets");
+}
+
+void Editor::actionsWidget() {
+  ImGui::Text("actions");
 }
 
 void Editor::loadWidget() {

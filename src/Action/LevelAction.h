@@ -3,7 +3,7 @@
 #include "Action.h"
 #include "State/GameState.h"
 
-class LevelAction : public Action<LevelAction> {
+class LevelAction : public Action {
  public:
   LevelAction(GameState& state, std::filesystem::path filename)
       : state(state), filename(std::move(filename)) {}

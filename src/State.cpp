@@ -1,15 +1,6 @@
 #include "State.h"
 
-#include "Game.h"
-
-State::State()
-    : keybinds(Game::getKeybinds()),
-      window(Game::getWindow()),
-      windowSize(Game::getWindowSize()),
-      eventManager(Game::getEventManager()),
-      resourceManager(Game::getResourceManager()),
-      audioManager(Game::getAudioManager()),
-      uiManager(Game::getUIManager()) {}
+State::State(Game& game) : game(game) {}
 
 State::~State() {}
 

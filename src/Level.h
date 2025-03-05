@@ -9,11 +9,11 @@
 #include "Entity/Collider.h"
 #include "Entity/Player.h"
 #include "Entity/TileMap.h"
-#include "Manager/Resource.h"
+#include "Game.h"
 
 class Level {
  public:
-  Level();
+  Level(Game& game);
 
   void loadFromFile(const std::filesystem::path& filename);
   void unload();
@@ -27,7 +27,7 @@ class Level {
   void loadEntities(LevelData::Tilemap& tilemap, std::vector<EntityData>& data);
 
  private:
-  ResourceManager& resourceManager;
+  Game& game;
   std::vector<std::shared_ptr<void>> resources;
   Background background;
   TileMap tilemap;
@@ -36,5 +36,6 @@ class Level {
 
   bool followPlayer = true;
   Player* player;
-  std::unique_ptr<AbstractAction> activeAction;
+  Action* activeAction = nullptr;
+  // TODO(des): store actions somewhere?
 };

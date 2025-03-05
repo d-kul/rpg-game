@@ -1,7 +1,5 @@
 #include "Text.h"
 
-#include <SFML/Graphics/RenderTarget.hpp>
-
 Text::Text(const sf::Font& font, sf::String string, unsigned int characterSize)
     : text(font, string, characterSize) {}
 

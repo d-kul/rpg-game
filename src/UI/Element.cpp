@@ -1,21 +1,25 @@
 #include "Element.h"
 
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
+#include <SFML/System/Vector2.hpp>
 
-void UIElement::addChild(std::unique_ptr<UIElement>&& child) {
+void UIElement::addChild(std::unique_ptr<UIElement> child) {
   child->parent = this;
   children.push_back(std::move(child));
 }
 
-void UIElement::handleChildrenEvent(sf::Event event) {
-  for (auto& child : children) {
-    child->handleEvent(event);
-  }
+const UIElement::children_t& UIElement::getChildren() const {
+  return children;
 }
 
-sf::Transform UIElement::getGlobalTransform() {
-  if (!parent) return getTransform();
-  return getTransform() * parent->getGlobalTransform();
+bool UIElement::handleChildrenEvent(sf::Event event) {
+  for (auto it = children.rbegin(); it != children.rend(); ++it) {
+    auto& child = *it;
+    bool res = child->handleEvent(event);
+    if (res) return res;
+  }
+  return false;
 }
 
 void UIElement::drawChildren(sf::RenderTarget& target,
@@ -23,4 +27,14 @@ void UIElement::drawChildren(sf::RenderTarget& target,
   for (auto& child : children) {
     child->draw(target, states);
   }
+}
+
+sf::Transform UIElement::getGlobalTransform() const {
+  if (!parent) return getTransform();
+  return getTransform() * parent->getGlobalTransform();
+}
+
+bool UIElement::pointInside(sf::FloatRect localRect, sf::Vector2i point) const {
+  return localRect.contains(
+      getGlobalTransform().getInverse().transformPoint(sf::Vector2f{point}));
 }

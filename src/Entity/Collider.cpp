@@ -1,8 +1,6 @@
 #include "Collider.h"
 
-#include "Game.h"
-
-Collider::Collider() : manager(Game::getColliderManager()) {
+Collider::Collider(ColliderManager& manager) : manager(manager) {
   manager.addCollider(*this);
 }
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics/Text.hpp>
+#include <SFML/Graphics/RenderStates.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
 
 #include "Element.h"
 

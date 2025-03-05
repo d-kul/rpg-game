@@ -10,64 +10,36 @@
 #include "UI/Frame.h"
 #include "UI/Text.h"
 
-// Singleton interface
-Game& Game::getInstance() { return instance; }
-
-sf::RenderWindow& Game::getWindow() { return instance.window; }
-sf::Vector2u& Game::getWindowSize() { return instance.windowSize; }
-keybinds_t& Game::getKeybinds() { return instance.keybinds; }
-State* Game::getState() { return instance.state; }
-
-EventManager& Game::getEventManager() { return instance.eventManager; }
-ResourceManager& Game::getResourceManager() { return instance.resourceManager; }
-AudioManager& Game::getAudioManager() { return instance.audioManager; }
-InteractibleManager& Game::getInteractibleManager() {
-  return instance.interactibleManager;
-}
-ColliderManager& Game::getColliderManager() { return instance.colliderManager; }
-UIManager& Game::getUIManager() { return instance.uiManager; }
-
 // Initialization
-void Game::initWindow() {
+void Game::initWindowConfig() {
   // Load options from "window.ini" file
   Config config{"config/window.ini"};
-  std::string title = config.get("title").value_or("something cool");
-  sf::VideoMode video_mode = sf::VideoMode::getDesktopMode();
-  fullscreen = config.get<bool>("fullscreen").value_or(false);
 
-  // TODO(des): turn off width & height customization
+#ifdef NDEBUG
+  videoMode = sf::VideoMode::getDesktopMode();
+#else
+  title = config.get("title").value_or("something cool");
+  videoMode = sf::VideoMode::getDesktopMode();
   if (auto width = config.get<unsigned>("width"),
       height = config.get<unsigned>("height");
       width && height) {
-    video_mode.size.x = *width;
-    video_mode.size.y = *height;
-    if (fullscreen && !video_mode.isValid()) {
-      video_mode = sf::VideoMode::getDesktopMode();
+    videoMode.size.x = *width;
+    videoMode.size.y = *height;
+    if (fullscreen && !videoMode.isValid()) {
+      videoMode = sf::VideoMode::getDesktopMode();
     }
   }
-  auto framerate_limit = config.get<unsigned>("framerate_limit");
-  bool vsync_enabled = config.get<bool>("vsync_enabled").value_or(false);
-  unsigned antialiasing_level =
-      config.get<unsigned>("antialiasing_level").value_or(0);
+#endif
+  fullscreen = config.get<bool>("fullscreen").value_or(false);
+  createWindow();
 
-  auto screen_middle =
-      (sf::VideoMode::getDesktopMode().size - video_mode.size) / 2u;
-
-  contextSettings.antiAliasingLevel = antialiasing_level;
-  window.create(
-      video_mode, title,
-      fullscreen ? sf::Style::None : sf::Style::Titlebar | sf::Style::Close,
-      fullscreen ? sf::State::Fullscreen : sf::State::Windowed,
-      contextSettings);
-  if (framerate_limit) {
-    window.setFramerateLimit(*framerate_limit);
+  bool vsyncEnabled = config.get<bool>("vsync_enabled").value_or(false);
+  if (vsyncEnabled) {
+    window.setVerticalSyncEnabled(vsyncEnabled);
   } else {
-    window.setVerticalSyncEnabled(vsync_enabled);
+    window.setFramerateLimit(
+        config.get<unsigned>("framerate_limit").value_or(60));
   }
-  if (!fullscreen) window.setPosition(sf::Vector2i{screen_middle});
-  windowSize = video_mode.size;
-  window.setView(
-      sf::View{sf::Vector2f{windowSize} / 2.f, sf::Vector2f{windowSize}});
 }
 
 void Game::initKeybinds() {
@@ -81,13 +53,15 @@ void Game::initKeybinds() {
 }
 
 void Game::initManagers() {
-  uiManager.init();
+  uiManager.init(videoMode.size);
   auto main_frame = std::make_unique<Frame>();
-  main_frame->shape.setSize(sf::Vector2f{windowSize});
+  loading_frame = main_frame.get();
+  main_frame->shape.setSize(sf::Vector2f{videoMode.size});
   main_frame->shape.setFillColor(sf::Color(0, 0, 0, 128));
   auto font =
       resourceManager.retain<sf::Font>("resources/fonts/DroidSansMono.ttf");
   auto text = std::make_unique<Text>(*font, "Loading...");
+  loading_text = text.get();
   text->text.setFillColor(sf::Color::White);
   text->text.setOrigin(text->text.getGlobalBounds().getCenter());
   text->setPosition(main_frame->shape.getGeometricCenter());
@@ -96,13 +70,45 @@ void Game::initManagers() {
 }
 
 void Game::initState() {
-  state = new MainMenuState{};
+  state = new MainMenuState{*this};
   state->enter();
+}
+
+void Game::setFullscreen(bool fullscreen) {
+  this->fullscreen = fullscreen;
+  createWindow();
+}
+
+void Game::updateSize() {
+  window.setSize(videoMode.size);
+  auto size = sf::Vector2f{videoMode.size};
+  if (!fullscreen)
+    window.setPosition(
+        sf::Vector2i{sf::VideoMode::getDesktopMode().size - videoMode.size} /
+        2);
+  window.setView(sf::View{size / 2.f, size});
+  uiManager.setView(window.getView());
+  loading_frame->shape.setSize(size);
+  loading_text->setPosition(size / 2.f);
+}
+
+void Game::createWindow() {
+  window.create(
+      videoMode, title,
+      fullscreen ? sf::Style::None : sf::Style::Titlebar | sf::Style::Close,
+      fullscreen ? sf::State::Fullscreen : sf::State::Windowed,
+      contextSettings);
+  if (!fullscreen)
+    window.setPosition(
+        sf::Vector2i{sf::VideoMode::getDesktopMode().size - videoMode.size} /
+        2);
+  window.setView(sf::View{sf::Vector2f{videoMode.size} / 2.f,
+                          sf::Vector2f{videoMode.size}});
 }
 
 // Constructors, destructor
 Game::Game() {
-  initWindow();
+  initWindowConfig();
   initKeybinds();
   initManagers();
   initState();

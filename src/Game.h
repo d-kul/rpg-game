@@ -12,32 +12,25 @@
 #include "Manager/Interactible.h"
 #include "Manager/Resource.h"
 #include "Manager/UI.h"
+#include "UI/Frame.h"
+#include "UI/Text.h"
+
+class Game;
+
 #include "State.h"
 
 class Game {
- public:
-  // Singleton interface
-  static Game& getInstance();
-
-  static sf::RenderWindow& getWindow();
-  static sf::Vector2u& getWindowSize();
-  static keybinds_t& getKeybinds();
-  static State* getState();
-
-  // TODO(des): manage the growing pile of managers
-  static EventManager& getEventManager();
-  static ResourceManager& getResourceManager();
-  static AudioManager& getAudioManager();
-  static InteractibleManager& getInteractibleManager();
-  static ColliderManager& getColliderManager();
-  static UIManager& getUIManager();
-
  private:
   // Initialization
-  void initWindow();
+  void initWindowConfig();
   void initKeybinds();
   void initManagers();
   void initState();
+
+ public:
+  void setFullscreen(bool fullscreen);
+  void updateSize();
+  void createWindow();
 
   // Constructor, destructor
   Game();
@@ -51,25 +44,28 @@ class Game {
   void run();
 
  private:
-  static Game instance;
   static const keybinds_t default_keybinds;
 
   // Members
-  bool fullscreen = false;
+  std::string title;
   sf::ContextSettings contextSettings;
-  sf::RenderWindow window;
-  sf::Vector2u windowSize;
+  sf::Clock clock;
+  State* state = nullptr;
+  Frame* loading_frame;
+  Text* loading_text;
 
-  // TODO(des): manage the growing pile of managers
+ public:
+  sf::RenderWindow window;
+  sf::VideoMode videoMode;
+  bool fullscreen = false;
+
   EventManager eventManager;
   ResourceManager resourceManager;
   AudioManager audioManager;
   InteractibleManager interactibleManager;
   ColliderManager colliderManager;
-  UIManager uiManager;
+  UIManager uiManager{window};
 
-  State* state = nullptr;
-  sf::Clock clock;
   keybinds_t keybinds;
 
  public:

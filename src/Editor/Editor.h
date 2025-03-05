@@ -127,12 +127,17 @@ class Editor {
   void widgets();
 
   void backgroundWidget();
+  
   void tilesetLoadWidget();
+  
   void tilesetSelectWidget();
+  
   void entitiesWidget();
-
   void spriteWidget(EntityData::Sprite& sprite);
   void actionWidget(std::optional<ActionData>& action);
+
+  void spriteSheetsWidget();
+  void actionsWidget();
 
   void loadWidget();
   void saveWidget();

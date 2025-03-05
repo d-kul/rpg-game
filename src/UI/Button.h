@@ -26,7 +26,7 @@ class Button : public UIElement {
   sig_t& onClick();
 
   // Functionality
-  void handleEvent(sf::Event event) override;
+  bool handleEvent(sf::Event event) override;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
  public:
@@ -37,9 +37,6 @@ class Button : public UIElement {
   sf::Mouse::Button button = sf::Mouse::Button::Left;
 
  private:
-  // Helpers
-  bool pointInside(sf::Vector2i point);
-
   // Internal state
   bool pressed = false;
 

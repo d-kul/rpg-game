@@ -11,8 +11,7 @@ void ColliderManager::addCollider(Collider& collider) {
 
 void ColliderManager::removeCollider(Collider& collider) {
   DEBUG("removed collider ", &collider);
-  colliders.erase(std::remove(colliders.begin(), colliders.end(), &collider),
-                  colliders.end());
+  colliders.erase(std::find(colliders.begin(), colliders.end(), &collider));
 }
 
 bool ColliderManager::checkCollision(sf::Vector2f point) {

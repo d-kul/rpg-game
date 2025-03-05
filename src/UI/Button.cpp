@@ -28,9 +28,9 @@ Button::sig_t& Button::onClick() { return onClick_sig; }
 
 // Functionality
 
-void Button::handleEvent(sf::Event event) {
+bool Button::handleEvent(sf::Event event) {
   if (auto mouseMoved = event.getIf<sf::Event::MouseMoved>()) {
-    if (pointInside(mouseMoved->position)) {
+    if (pointInside(shape.getLocalBounds(), mouseMoved->position)) {
       shape.setFillColor(pressed ? activeColor : hoverColor);
     } else {
       pressed = false;
@@ -39,33 +39,30 @@ void Button::handleEvent(sf::Event event) {
   } else if (auto mouseButtonPressed =
                  event.getIf<sf::Event::MouseButtonPressed>();
              mouseButtonPressed && mouseButtonPressed->button == button) {
-    if (pointInside(mouseButtonPressed->position)) {
+    if (pointInside(shape.getLocalBounds(), mouseButtonPressed->position)) {
       onMousePressed_sig();
       shape.setFillColor(activeColor);
       pressed = true;
+      return true;
     }
   } else if (auto mouseButtonReleased =
                  event.getIf<sf::Event::MouseButtonReleased>();
              mouseButtonReleased && mouseButtonReleased->button == button) {
-    if (pointInside(mouseButtonReleased->position)) {
+    if (pointInside(shape.getLocalBounds(), mouseButtonReleased->position)) {
       onMouseReleased_sig();
       if (pressed) {
         onClick_sig();
       }
       pressed = false;
       shape.setFillColor(hoverColor);
+      return true;
     }
   }
+  return false;
 }
 
 void Button::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   states.transform *= getTransform();
   target.draw(shape, states);
   target.draw(text, states);
-}
-
-// Helpers
-bool Button::pointInside(sf::Vector2i point) {
-  return shape.getLocalBounds().contains(
-      getGlobalTransform().getInverse().transformPoint(sf::Vector2f{point}));
 }

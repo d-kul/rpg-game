@@ -13,9 +13,11 @@ class GameState : public State {
  private:
   // Lifetime management
   void loadResources();
-  void loadAssets();
+  void loadLevel();
 
  public:
+  GameState(Game& game);
+
   // State lifetime
   void enter() override;
   void exit() override;
@@ -25,11 +27,13 @@ class GameState : public State {
   void render() override;
 
   // Listeners
+  void onKeyPressed(sf::Event::KeyPressed keyPressed);
   void onKeyReleased(sf::Event::KeyReleased keyReleased);
 
  private:
   void loadNextLevel(const std::filesystem::path& filename);
   void initUI();
+  void updateUI();
 
   friend class LevelAction;
 
@@ -38,10 +42,9 @@ class GameState : public State {
   std::shared_ptr<sf::Font> font;
   std::shared_ptr<sf::Font> mono_font;
   std::shared_ptr<sf::Music> music;
-  std::shared_ptr<sf::Texture> pearto_texture;
 
   Level level;
   std::optional<std::filesystem::path> next_level;
 
-  ConnectionGuard onKeyReleased_cg;
+  ConnectionGuard onKeyPressed_cg, onKeyReleased_cg;
 };

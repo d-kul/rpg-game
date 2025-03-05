@@ -7,16 +7,18 @@
 #include "Game.h"
 #include "Resource/TileSet.h"
 
-Player::Player(float tileSize, float movementSpeed)
-    : Player(*Game::getResourceManager()
+Player::Player(Game& game, float tileSize, float movementSpeed)
+    : Player(game,
+             *game.resourceManager
                   .retain<sf::Texture>(  // NOTE(des): a bit hacky but whatever
                       "resources/images/tilesets/omori.png"),
              tileSize, movementSpeed) {}
 
-Player::Player(const sf::Texture& texture, float tileSize, float movementSpeed)
-    : keybinds(Game::getKeybinds()),
-      interactibleManager(Game::getInteractibleManager()),
-      colliderManager(Game::getColliderManager()),
+Player::Player(Game& game, const sf::Texture& texture, float tileSize,
+               float movementSpeed)
+    : keybinds(game.keybinds),
+      interactibleManager(game.interactibleManager),
+      colliderManager(game.colliderManager),
       Actor(texture, std::make_unique<TileSet>(texture, 32)),
       tileSize(tileSize),
       movementSpeed(movementSpeed) {
@@ -31,8 +33,8 @@ void Player::update(sf::Time dt) {
   DrawableEntity::update(dt);
 }
 
-std::unique_ptr<AbstractAction> Player::updateInteraction() {
-  if (!positionSnapped || !interactKeyClick) return {};
+Action* Player::updateInteraction() {
+  if (!positionSnapped || !interactKeyClick) return nullptr;
   sf::Vector2f position = getPosition();
   switch (animationState.direction) {
     case AnimationState::Up:
