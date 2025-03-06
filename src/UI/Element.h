@@ -10,10 +10,13 @@
 class UIElement : public sf::Transformable, public sf::Drawable {
  public:
   using children_t = std::vector<std::unique_ptr<UIElement>>;
+
  public:
   virtual ~UIElement() {}
 
   virtual bool handleEvent(sf::Event event) { return false; }
+  void setActive(bool active);
+  bool isActive() const;
   void addChild(std::unique_ptr<UIElement> child);
   const children_t& getChildren() const;
 
@@ -25,5 +28,6 @@ class UIElement : public sf::Transformable, public sf::Drawable {
 
  protected:
   UIElement* parent = nullptr;
+  bool active = true;
   children_t children;
 };

@@ -24,9 +24,9 @@ LevelData LevelData::load(std::istream& in) {
       data.loadTilemapData(in);
       tilemapLoaded = true;
     } else if (line == ENTITIES_HEADER) {
-      if (!tilemapLoaded)
-        error("tilemap data should be located before entity data");
       data.loadEntityData(in);
+    } else if (line == ACTIONS_HEADER) {
+      data.loadActionData(in);
     } else if (line == META_HEADER) {
       data.loadMetaData(in);
     }
@@ -44,6 +44,7 @@ void LevelData::save(std::ostream& out) {
   saveBackgroundData(out);
   saveTilemapData(out);
   saveEntityData(out);
+  saveActionData(out);
   saveMetaData(out);
 }
 
@@ -127,6 +128,25 @@ void LevelData::saveEntityData(std::ostream& out) {
   out << ENTITIES_HEADER << '\n' << entities.size() << '\n';
   for (auto& entityData : entities) {
     entityData.save(out);
+  }
+}
+
+void LevelData::loadActionData(std::istream& in) {
+  std::size_t actionAmount;
+  in >> actionAmount >> std::ws;
+  DEBUG("actions:", actionAmount);
+  nextAction.resize(actionAmount);
+  for (std::size_t i = 0; i < actionAmount; i++) {
+    actions.push_back(ActionData::load(in));
+    in >> nextAction[i] >> std::ws;
+  }
+}
+
+void LevelData::saveActionData(std::ostream& out) {
+  out << ACTIONS_HEADER << '\n' << actions.size() << '\n';
+  for (std::size_t i = 0; i < actions.size(); i++) {
+    actions[i].save(out);
+    out << nextAction[i] << '\n';
   }
 }
 

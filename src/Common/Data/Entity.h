@@ -1,10 +1,8 @@
 #pragma once
 
 #include <SFML/System/Vector2.hpp>
-#include <optional>
+#include <filesystem>
 #include <variant>
-
-#include "Common/Data/Action.h"
 
 class EntityData {
  public:
@@ -14,32 +12,31 @@ class EntityData {
 
   struct Player {
     static constexpr const char* HEADER = "(Player)";
-    sf::Vector2i position;
-    Sprite sprite;
+    // Sprite sprite;
   };
 
   struct Character {
     static constexpr const char* HEADER = "(Character)";
-    sf::Vector2i position;
-    Sprite sprite;
-    std::optional<ActionData> action;
+    // Sprite sprite;
+    int action = -1;
   };
 
   struct Prop {
     static constexpr const char* HEADER = "(Prop)";
-    sf::Vector2i position;
-    Sprite sprite;
-    std::optional<ActionData> action;
+    // Sprite sprite;
+    int action = -1;
   };
 
   struct Trigger {
-    sf::Vector2i position;
-    std::optional<ActionData> action;
+    static constexpr const char* HEADER = "(Trigger)";
+    int action = -1;
   };
 
   template <typename EntityType>
-  EntityData(const EntityType& entity) : data(entity) {}
+  EntityData(sf::Vector2i position, const EntityType& entity)
+      : position(position), data(entity) {}
 
+  sf::Vector2i position;
   std::variant<Player, Character, Prop> data;
 
   static EntityData load(std::istream& in);

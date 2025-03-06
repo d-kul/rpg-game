@@ -4,5 +4,4 @@
 
 class WaitInputAction : public Action {
  public:
-  
 };

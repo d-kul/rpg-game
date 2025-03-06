@@ -4,5 +4,4 @@
 
 class ColliderAction : public Action {
  public:
-  
 };

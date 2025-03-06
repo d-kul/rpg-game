@@ -4,5 +4,4 @@
 
 class PositionAction : public Action {
  public:
-  
 };

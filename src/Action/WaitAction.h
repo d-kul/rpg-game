@@ -4,5 +4,4 @@
 
 class WaitAction : public Action {
  public:
-  
 };

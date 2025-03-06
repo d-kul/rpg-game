@@ -1,6 +1,5 @@
 #include "Combo.h"
 
-#include "Core/Logger.h"
 #include "UI/Button.h"
 
 using Popup = Combo::Popup;
@@ -12,9 +11,9 @@ Popup::Popup(const sf::Font& font, sf::Vector2f optionSize,
       optionsSize(options.size()),
       step(optionSize.y),
       rect({0.f, 0.f}, {optionSize.x, optionSize.y * maxOptions}) {
-  assert(maxOptions <=
-         options.size());  // NOTE(des): man, i don't want to deal with this
-
+  assert(maxOptions <= options.size());  // NOTE(des): man, i don't want to deal
+                                         // with the edge cases
+  setActive(false);
   {
     auto scrollbar = std::make_unique<Frame>();
     this->scrollbar = scrollbar.get();
@@ -43,6 +42,7 @@ Popup::Popup(const sf::Font& font, sf::Vector2f optionSize,
 }
 
 bool Popup::handleEvent(sf::Event event) {
+  if (!active) return false;
   if (auto mouseWheelScrolled = event.getIf<sf::Event::MouseWheelScrolled>();
       mouseWheelScrolled && pointInside(rect, mouseWheelScrolled->position)) {
     if (start > 0 && mouseWheelScrolled->delta > 0) {
@@ -65,6 +65,7 @@ bool Popup::handleEvent(sf::Event event) {
 }
 
 void Popup::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  if (!active) return;
   states.transform *= getTransform();
   {
     auto optionsStates = states;
@@ -87,7 +88,7 @@ Combo::Combo(const sf::Font& font, sf::Vector2f size, unsigned int textSize,
       font, size, selectedOptionIdx < 0 ? "" : options[selectedOptionIdx],
       textSize);
   auto& button_text = button->text;
-  button->onClick().subscribe([&]() { popupOpened = !popupOpened; });
+  button->onClick().subscribe([&]() { popup.setActive(!popup.isActive()); });
   addChild(std::move(button));
 
   popup.move({0, size.y});
@@ -95,19 +96,21 @@ Combo::Combo(const sf::Font& font, sf::Vector2f size, unsigned int textSize,
   onSelect_sig.subscribe([&](int optionIdx) {
     button_text.setString(optionIdx < 0 ? "" : this->options[optionIdx]);
     button_text.setOrigin(button_text.getLocalBounds().getCenter());
-    popupOpened = false;
+    popup.setActive(false);
   });
 }
 
 Combo::sig_t& Combo::onSelect() { return onSelect_sig; }
 
 bool Combo::handleEvent(sf::Event event) {
-  if (popupOpened && popup.handleEvent(event)) return true;
+  if (!active) return false;
+  if (popup.isActive() && popup.handleEvent(event)) return true;
   return handleChildrenEvent(event);
 }
 
 void Combo::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  if (!active) return;
   states.transform *= getTransform();
   drawChildren(target, states);
-  if (popupOpened) target.draw(popup, states);
+  if (popup.isActive()) target.draw(popup, states);
 }

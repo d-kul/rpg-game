@@ -4,5 +4,4 @@
 
 class ImageAction : public Action {
  public:
-  
 };

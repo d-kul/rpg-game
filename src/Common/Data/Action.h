@@ -50,16 +50,16 @@ class ActionData {
   struct Sound {
     static constexpr const char* HEADER = "<Sound>";
     std::filesystem::path filename;
-    bool looping;
-    float offsetSeconds;
-    float volume;
+    bool looping = false;
+    float offsetSeconds = 0.f;
+    float volume = 100.f;
   };
   struct Music {
     static constexpr const char* HEADER = "<Music>";
     std::filesystem::path filename;
-    bool looping;
-    float offsetSeconds;
-    float volume;
+    bool looping = false;
+    float offsetSeconds = 0.f;
+    float volume = 100.f;
   };
   struct MusicPlay {
     static constexpr const char* HEADER = "<MusicPlay>";

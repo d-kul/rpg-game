@@ -94,7 +94,8 @@ void Level::loadTilemap(LevelData::Tilemap& data) {
                  sf::Vector2u(data.width, data.height));
     resources.push_back(tilesetTexture);
   }
-  auto tilemap_collider = std::make_unique<TileMapCollider>(game.colliderManager);
+  auto tilemap_collider =
+      std::make_unique<TileMapCollider>(game.colliderManager);
   tilemap_collider->load(std::move(data.colliders), data.tileSize,
                          sf::Vector2u(data.width, data.height));
   colliders.push_back(std::move(tilemap_collider));
@@ -108,9 +109,9 @@ void Level::loadEntities(LevelData::Tilemap& tilemap,
                            data) {  // TODO(des): add support for movementSpeed
                      auto player =
                          std::make_unique<Player>(game, tilemap.tileSize);
-                     player->setPosition(sf::Vector2f{data.position} *
+                     player->setPosition(sf::Vector2f{entity.position} *
                                          tilemap.tileSize);
-                     player->setDestination(sf::Vector2f{data.position} *
+                     player->setDestination(sf::Vector2f{entity.position} *
                                             tilemap.tileSize);
                      this->player = player.get();
                      entities.push_front(std::move(player));

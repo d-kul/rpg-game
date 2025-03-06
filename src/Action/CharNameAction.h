@@ -4,5 +4,4 @@
 
 class CharNameAction : public Action {
  public:
-  
 };

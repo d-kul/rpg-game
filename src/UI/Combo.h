@@ -57,6 +57,5 @@ class Combo : public UIElement {
   std::vector<sf::String> options;
   int selectedOptionIdx;
   Popup popup;
-  bool popupOpened = false;
   sig_t onSelect_sig;
 };

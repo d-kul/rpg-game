@@ -4,5 +4,4 @@
 
 class CharNameFontAction : public Action {
  public:
-  
 };

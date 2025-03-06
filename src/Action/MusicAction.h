@@ -4,5 +4,4 @@
 
 class MusicAction : public Action {
  public:
-  
 };

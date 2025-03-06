@@ -4,5 +4,4 @@
 
 class TextRateAction : public Action {
  public:
-  
 };

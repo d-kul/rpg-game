@@ -4,5 +4,4 @@
 
 class FadeInAction : public Action {
  public:
-  
 };

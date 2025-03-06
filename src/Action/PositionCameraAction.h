@@ -4,5 +4,4 @@
 
 class PositionCameraAction : public Action {
  public:
-  
 };

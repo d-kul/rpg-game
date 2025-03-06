@@ -4,5 +4,4 @@
 
 class AnimationAction : public Action {
  public:
-  
 };

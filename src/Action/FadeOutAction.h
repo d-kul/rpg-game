@@ -4,5 +4,4 @@
 
 class FadeOutAction : public Action {
  public:
-  
 };

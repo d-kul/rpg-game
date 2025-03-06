@@ -73,11 +73,13 @@ void save(ActionData::WaitInput& waitInput, std::ostream& out) {}
 // Text
 template <>
 ActionData::Text load(std::istream& in) {
-  return {readOne<std::string>(in)};
+  ActionData::Text text;
+  in >> std::quoted(text.text) >> std::ws;
+  return text;
 }
 template <>
 void save(ActionData::Text& text, std::ostream& out) {
-  out << text.text << '\n';
+  out << std::quoted(text.text) << '\n';
 }
 
 // TextFont
@@ -113,11 +115,13 @@ void save(ActionData::TextRate& textRate, std::ostream& out) {
 // CharName
 template <>
 ActionData::CharName load(std::istream& in) {
-  return {readOne<std::string>(in)};
+  ActionData::CharName name;
+  in >> std::quoted(name.text) >> std::ws;
+  return name;
 }
 template <>
 void save(ActionData::CharName& charName, std::ostream& out) {
-  out << charName.text << '\n';
+  out << std::quoted(charName.text) << '\n';
 }
 
 // CharNameFont

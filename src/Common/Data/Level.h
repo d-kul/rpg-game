@@ -6,14 +6,17 @@
 #include <optional>
 #include <vector>
 
+#include "Common/Data/Action.h"
 #include "Common/Data/Entity.h"
 
 class LevelData {
  public:
-   static constexpr const char* BACKGROUND_HEADER = "[Background]";
-   static constexpr const char* TILEMAP_HEADER = "[Tilemap]";
-   static constexpr const char* ENTITIES_HEADER = "[Entities]";
-   static constexpr const char* META_HEADER = "[Meta]";
+  static constexpr const char* BACKGROUND_HEADER = "[Background]";
+  static constexpr const char* TILEMAP_HEADER = "[Tilemap]";
+  static constexpr const char* ENTITIES_HEADER = "[Entities]";
+  static constexpr const char* ACTIONS_HEADER = "[Actions]";
+  static constexpr const char* META_HEADER = "[Meta]";
+
  public:
   struct Background {
     std::filesystem::path texturePath;
@@ -36,6 +39,8 @@ class LevelData {
   } tilemap;
 
   std::vector<EntityData> entities;
+  std::vector<ActionData> actions;
+  std::vector<int> nextAction;
 
   struct Meta {
     bool followPlayer = true;
@@ -53,6 +58,9 @@ class LevelData {
 
   void loadEntityData(std::istream& in);
   void saveEntityData(std::ostream& out);
+
+  void loadActionData(std::istream& in);
+  void saveActionData(std::ostream& out);
 
   void loadMetaData(std::istream& in);
   void saveMetaData(std::ostream& out);

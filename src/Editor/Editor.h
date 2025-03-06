@@ -12,6 +12,51 @@
 
 class Editor {
  private:
+  // Data types
+  struct Action {
+    ActionData data;
+    std::string pathbuf;
+    Action* next = nullptr;
+  };
+
+  struct Entity {
+    struct Drawable {};
+
+    struct Interactible {
+      Action* action = nullptr;
+    };
+
+    struct Player {};
+
+    struct Character {
+      Drawable drawable;
+      Interactible interactible;
+    };
+
+    struct Prop {
+      Drawable drawable;
+      Interactible interactible;
+    };
+
+    Entity(const sf::Font& font, Player player)
+        : position{0, 0}, data{player}, frame{}, text{font, "Player", 20} {}
+
+    Entity(const sf::Font& font, Character character)
+        : position{0, 0},
+          data{character},
+          frame{},
+          text{font, "Character", 20} {}
+
+    Entity(const sf::Font& font, Prop prop)
+        : position{0, 0}, data{prop}, frame{}, text{font, "Prop", 20} {}
+
+    sf::Vector2i position;
+    std::variant<Player, Character, Prop> data;
+
+    sf::RectangleShape frame;
+    sf::Text text;
+  };
+
   // Keybinds
   static constexpr auto panKey = sf::Keyboard::Key::LShift;
   static constexpr auto panMouseButton = sf::Mouse::Button::Left;
@@ -46,7 +91,7 @@ class Editor {
     Entity
   } selectState = SelectState::Tile;
   int selectedTile = -1;
-  EntityData* selectedEntity = nullptr;
+  Entity* selectedEntity = nullptr;
 
   bool noBackground = true;
   std::string backgroundPathBuf = "resources/images/bg/space_fumo.png";
@@ -64,9 +109,11 @@ class Editor {
   char savePathBuf[128] = "resources/data/levels/level.txt";
   float saveTileSize = 64.f;
 
-  std::list<EntityData> entities;
-  std::vector<bool> open;
-  std::list<EntityData>::iterator playerIt = entities.end();
+  std::list<Entity> entities;
+  std::list<Entity>::iterator playerIt = entities.end();
+  bool toChangeScale = false;
+
+  std::list<Action> actions;
 
   // Inner state
   bool panButtonPressed = false;
@@ -77,6 +124,8 @@ class Editor {
   sf::IntRect widgetWindowRect;
   std::map<std::pair<int, int>, std::pair<int, sf::Sprite>> tiles;
   std::set<std::pair<int, int>> colliders;
+  std::map<Action*, std::set<Action**>> actionHolders;
+  Action* highlightedAction = nullptr;
 
   // Members
   sf::RenderWindow window;
@@ -89,8 +138,6 @@ class Editor {
   sf::RectangleShape selection;
   sf::Text selectionText{font, "", 25};
   sf::RectangleShape colliderFrame;
-  sf::RectangleShape entityFrame;
-  std::vector<sf::Text> entityTexts;
 
   Background background;
   std::unique_ptr<sf::Texture> backgroundTexture;
@@ -110,6 +157,8 @@ class Editor {
  private:
   void setSelect(SelectState state);
   bool isSelected(SelectState state);
+  void selectEntity(Entity* entity);
+  void prepareEntity(Entity& entity);
 
   void setTile(sf::Vector2i position, int tile);
   void eraseTile(sf::Vector2i position);
@@ -127,14 +176,12 @@ class Editor {
   void widgets();
 
   void backgroundWidget();
-  
+
   void tilesetLoadWidget();
-  
+
   void tilesetSelectWidget();
-  
+
   void entitiesWidget();
-  void spriteWidget(EntityData::Sprite& sprite);
-  void actionWidget(std::optional<ActionData>& action);
 
   void spriteSheetsWidget();
   void actionsWidget();
@@ -154,7 +201,13 @@ class Editor {
   sf::Vector2i saveTilemap(LevelData& data);
 
   void loadEntities(std::vector<EntityData>& data);
-  void saveEntities(LevelData& data, sf::Vector2i origin);
+  void saveEntities(std::vector<EntityData>& data, sf::Vector2i origin);
+
+  void loadActions(std::vector<ActionData>& data);
+  void saveActions(std::vector<ActionData>& data);
+  
+  void bindActionRefs(LevelData& data);
+  void bindActionIndices(LevelData& data);
 
   void draw();
 };

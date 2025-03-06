@@ -29,6 +29,7 @@ Button::sig_t& Button::onClick() { return onClick_sig; }
 // Functionality
 
 bool Button::handleEvent(sf::Event event) {
+  if (!active) return false;
   if (auto mouseMoved = event.getIf<sf::Event::MouseMoved>()) {
     if (pointInside(shape.getLocalBounds(), mouseMoved->position)) {
       shape.setFillColor(pressed ? activeColor : hoverColor);
@@ -62,6 +63,7 @@ bool Button::handleEvent(sf::Event event) {
 }
 
 void Button::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  if (!active) return;
   states.transform *= getTransform();
   target.draw(shape, states);
   target.draw(text, states);

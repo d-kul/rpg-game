@@ -4,5 +4,4 @@
 
 class TextSoundAction : public Action {
  public:
-  
 };

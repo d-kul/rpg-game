@@ -4,16 +4,19 @@
 #include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/System/Vector2.hpp>
 
+void UIElement::setActive(bool active) { this->active = active; }
+
+bool UIElement::isActive() const { return active; }
+
 void UIElement::addChild(std::unique_ptr<UIElement> child) {
   child->parent = this;
   children.push_back(std::move(child));
 }
 
-const UIElement::children_t& UIElement::getChildren() const {
-  return children;
-}
+const UIElement::children_t& UIElement::getChildren() const { return children; }
 
 bool UIElement::handleChildrenEvent(sf::Event event) {
+  if (!active) return false;
   for (auto it = children.rbegin(); it != children.rend(); ++it) {
     auto& child = *it;
     bool res = child->handleEvent(event);
@@ -24,6 +27,7 @@ bool UIElement::handleChildrenEvent(sf::Event event) {
 
 void UIElement::drawChildren(sf::RenderTarget& target,
                              sf::RenderStates states) const {
+  if (!active) return;
   for (auto& child : children) {
     child->draw(target, states);
   }

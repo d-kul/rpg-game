@@ -4,5 +4,4 @@
 
 class MusicStopAction : public Action {
  public:
-  
 };

@@ -4,5 +4,4 @@
 
 class TextAction : public Action {
  public:
-  
 };

@@ -22,3 +22,19 @@ T readOne(std::istream& in) {
   in >> t >> std::ws;
   return t;
 }
+
+template <typename T, typename... Ts>
+struct is_one_of {
+  static constexpr bool value = false;
+};
+
+template <typename T, typename... Ts>
+struct is_one_of<T, T, Ts...> {
+  static constexpr bool value = true;
+};
+
+template <typename T, typename U, typename... Ts>
+struct is_one_of<T, U, Ts...> : is_one_of<T, Ts...> {};
+
+template <typename T, typename... Ts>
+constexpr bool is_one_of_v = is_one_of<T, Ts...>::value;

@@ -4,5 +4,4 @@
 
 class CharIconAction : public Action {
  public:
-  
 };

@@ -4,5 +4,4 @@
 
 class MultipleAction : public Action {
  public:
-  
 };

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
-project(rpg_game 
+project(game 
+  VERSION 0.0.1
   LANGUAGES CXX)
 
 include(FetchContent)
@@ -145,12 +146,6 @@ target_include_directories(game PRIVATE src)
 target_compile_features(game PRIVATE cxx_std_17)
 target_link_libraries(game PRIVATE SFML::Audio SFML::Graphics)
 
-add_executable(test 
-  src/test.cpp)
-target_include_directories(test PRIVATE src)
-target_compile_features(test PRIVATE cxx_std_17)
-target_link_libraries(test PRIVATE SFML::Audio SFML::Graphics)
-
 add_executable(editor 
   src/Core/Logger.h
   src/Core/Logger.cpp
@@ -178,4 +173,9 @@ target_link_libraries(editor PRIVATE ImGui-SFML::ImGui-SFML)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 install(TARGETS game RUNTIME DESTINATION game)
 install(DIRECTORY config resources DESTINATION game)
-install(FILES LICENSE.txt README.txt DESTINATION game)
+install(FILES README.txt DESTINATION game)
+
+include(InstallRequiredSystemLibraries)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+set(CPACK_PACKAGE_VENDOR "des of unyucord")
+include(CPack)

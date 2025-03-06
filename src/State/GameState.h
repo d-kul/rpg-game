@@ -31,9 +31,17 @@ class GameState : public State {
   void onKeyReleased(sf::Event::KeyReleased keyReleased);
 
  private:
-  void loadNextLevel(const std::filesystem::path& filename);
   void initUI();
-  void updateUI();
+
+  void initImageFrame();
+  void initTextFrame();
+  void initMenuFrame();
+
+  void setImageFrameActive(bool active);
+  void setTextFrameActive(bool active);
+  void setMenuFrameActive(bool active);
+
+  void loadNextLevel(const std::filesystem::path& filename);
 
   friend class LevelAction;
 
@@ -45,6 +53,11 @@ class GameState : public State {
 
   Level level;
   std::optional<std::filesystem::path> next_level;
+
+  UIElement* mainFrame;
+  UIElement* menuFrame;
+  UIElement* textFrame;
+  UIElement* imageFrame;
 
   ConnectionGuard onKeyPressed_cg, onKeyReleased_cg;
 };

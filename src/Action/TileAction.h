@@ -4,5 +4,4 @@
 
 class TileAction : public Action {
  public:
-  
 };

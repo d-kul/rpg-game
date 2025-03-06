@@ -26,6 +26,9 @@ class Level {
   void loadTilemap(LevelData::Tilemap& data);
   void loadEntities(LevelData::Tilemap& tilemap, std::vector<EntityData>& data);
 
+ public:
+  Player* player;
+
  private:
   Game& game;
   std::vector<std::shared_ptr<void>> resources;
@@ -33,9 +36,7 @@ class Level {
   TileMap tilemap;
   std::list<std::unique_ptr<Entity>> entities;
   std::list<std::unique_ptr<Collider>> colliders;
-
   bool followPlayer = true;
-  Player* player;
   Action* activeAction = nullptr;
   // TODO(des): store actions somewhere?
 };
