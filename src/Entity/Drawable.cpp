@@ -1,24 +1,21 @@
 #include "Drawable.h"
 
-DrawableEntity::DrawableEntity(const sf::Texture& texture,
-                               std::unique_ptr<AbstractSpriteSheet> spriteSheet)
-    : sprite(texture), animated(true), frames(nullptr) {
-  assert(spriteSheet && "empty spritesheet is not allowed");
-  this->spriteSheet = std::move(spriteSheet);
-}
+DrawableEntity::DrawableEntity(const AbstractSpriteSheet& spriteSheet)
+    : sprite(spriteSheet.getTexture()),
+      spriteSheet(&spriteSheet),
+      animated(true),
+      frames(nullptr) {}
 
-DrawableEntity::DrawableEntity(const sf::Texture& texture,
-                               std::unique_ptr<AbstractSpriteSheet> spriteSheet,
+DrawableEntity::DrawableEntity(const AbstractSpriteSheet& spriteSheet,
                                const std::vector<int>& frames, float frameRate,
                                int startFrameIndex)
-    : sprite(texture),
+    : sprite(spriteSheet.getTexture()),
+      spriteSheet(&spriteSheet),
       animated(true),
       frames(&frames),
       frameIndex(startFrameIndex) {
-  assert(spriteSheet && "empty spritesheet is not allowed");
   assert(!frames.empty() && "frame list should not be empty");
   assert(frameRate > 0 && "frame rate should be strictly positive");
-  this->spriteSheet = std::move(spriteSheet);
   setFrames(frames, startFrameIndex);
   setFrameRate(frameRate);
 }

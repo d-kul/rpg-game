@@ -8,10 +8,8 @@
 
 class DrawableEntity : public virtual Entity {
  public:
-  DrawableEntity(const sf::Texture& texture,
-                 std::unique_ptr<AbstractSpriteSheet> spriteSheet);
-  DrawableEntity(const sf::Texture& texture,
-                 std::unique_ptr<AbstractSpriteSheet> spriteSheet,
+  DrawableEntity(const AbstractSpriteSheet& spriteSheet);
+  DrawableEntity(const AbstractSpriteSheet& spriteSheet,
                  const std::vector<int>& frames, float frameRate = 1.f,
                  int startFrameIndex = 0);
 
@@ -32,7 +30,7 @@ class DrawableEntity : public virtual Entity {
  protected:
   sf::Sprite sprite;
   bool animated;
-  std::unique_ptr<AbstractSpriteSheet> spriteSheet;
+  const AbstractSpriteSheet* spriteSheet;
   const std::vector<int>* frames;
   sf::Time frameInterval;
   int frameIndex;

@@ -519,8 +519,8 @@ void Editor::entitiesWidget() {
 void Editor::spriteSheetsWidget() { ImGui::Text("sprite sheets"); }
 
 void Editor::actionsWidget() {
-  highlightedAction = nullptr;
-  auto action_target = [this](Action*& action) {
+  Action* currentHighlightedAction = nullptr;
+  auto action_target = [this, &currentHighlightedAction](Action*& action) {
     std::stringstream ss;
     ss << action;
     if (ImGui::SmallButton(action ? ss.str().c_str() : "<no action>")) {
@@ -528,7 +528,7 @@ void Editor::actionsWidget() {
       actionHolders[action].erase(&action);
     }
     if (ImGui::IsItemHovered()) {
-      highlightedAction = action;
+      currentHighlightedAction = action;
     }
     if (ImGui::BeginDragDropTarget()) {
       if (const ImGuiPayload* payload =
@@ -677,6 +677,7 @@ void Editor::actionsWidget() {
       ++it;
     }
   }
+  highlightedAction = currentHighlightedAction;
 
   if (ImGui::Button("Add")) ImGui::OpenPopup("AddActionPopup");
   if (ImGui::BeginPopup("AddActionPopup")) {

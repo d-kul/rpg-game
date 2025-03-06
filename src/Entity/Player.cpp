@@ -19,7 +19,8 @@ Player::Player(Game& game, const sf::Texture& texture, float tileSize,
     : keybinds(game.keybinds),
       interactibleManager(game.interactibleManager),
       colliderManager(game.colliderManager),
-      Actor(texture, std::make_unique<TileSet>(texture, 32)),
+      Actor(*game.resourceManager.retain<TileSet>(str_key, "tilesets/omori",
+                                                  texture, 32)),
       tileSize(tileSize),
       movementSpeed(movementSpeed) {
   sprite.setScale({tileSize / 32.f, tileSize / 32.f});
