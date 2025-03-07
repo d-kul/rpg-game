@@ -27,8 +27,15 @@ Editor::Editor()
   currentPosition = view.getCenter();
   window.create(sf::VideoMode{screen_size}, "Level editor");
   window.setFramerateLimit(60);
-  if (!ImGui::SFML::Init(window)) {
+  if (!ImGui::SFML::Init(window, false)) {
     std::cerr << "failed to init imgui-sfml window" << std::endl;
+    window.close();
+  }
+  ImGuiIO& io = ImGui::GetIO();
+  io.Fonts->AddFontFromFileTTF("resources/fonts/DroidSansMono.ttf", 13, nullptr,
+                               io.Fonts->GetGlyphRangesCyrillic());
+  if (!ImGui::SFML::UpdateFontTexture()) {
+    std::cerr << "failed to load font" << std::endl;
     window.close();
   }
   setView(view);
@@ -36,7 +43,7 @@ Editor::Editor()
   selection.setFillColor(sf::Color::Transparent);
   selection.setOutlineThickness(2.f);
   selection.setSize(gridTileSize);
-  setSelect(SelectState::Tile);
+  setSelect(SelectState::None);
 
   colliderFrame.setFillColor(sf::Color::Transparent);
   colliderFrame.setOutlineThickness(2.f);
@@ -75,6 +82,11 @@ void Editor::run() {
 void Editor::setSelect(SelectState state) {
   selectState = state;
   switch (selectState) {
+    case SelectState::None:
+      selection.setOutlineColor(noneSelectColor);
+      selectionText.setFillColor(noneSelectColor);
+      selectionText.setString("None");
+      break;
     case SelectState::Tile:
       selection.setOutlineColor(tileSelectColor);
       selectionText.setFillColor(tileSelectColor);
@@ -104,13 +116,13 @@ bool Editor::isSelected(SelectState state) { return selectState == state; }
 
 void Editor::selectEntity(Entity* entity) {
   if (selectedEntity) {
-    selectedEntity->frame.setOutlineColor(entityFrameColor);
-    selectedEntity->text.setFillColor(entityFrameColor);
+    selectedEntity->frame.setOutlineColor(entityColor);
+    selectedEntity->text.setFillColor(entityColor);
   }
   selectedEntity = entity;
   if (selectedEntity) {
-    selectedEntity->frame.setOutlineColor(entityFrameSelectedColor);
-    selectedEntity->text.setFillColor(entityFrameSelectedColor);
+    selectedEntity->frame.setOutlineColor(selectedEntityColor);
+    selectedEntity->text.setFillColor(selectedEntityColor);
   }
   setSelect(SelectState::Entity);
 }
@@ -262,8 +274,13 @@ void Editor::handleKeys(sf::Event event) {
   auto keyReleased = event.getIf<sf::Event::KeyReleased>();
   if (!keyReleased) return;
   if (keyReleased->code == sf::Keyboard::Key::Q) paintTiles = !paintTiles;
-  if (keyReleased->code == sf::Keyboard::Key::E)
-    setSelect(SelectState::Collider);
+  if (keyReleased->code == sf::Keyboard::Key::Escape) {
+    setSelect(SelectState::None);
+  }
+  if (keyReleased->code == sf::Keyboard::Key::E) {
+    setSelect(isSelected(SelectState::Collider) ? SelectState::None
+                                                : SelectState::Collider);
+  }
   if (!tilesetTexture) return;
   if (keyReleased->code == sf::Keyboard::Key::Tab && selectedTile != -1) {
     int nextTile = selectedTile + (keyReleased->shift ? -1 : 1);
@@ -298,9 +315,15 @@ void Editor::widgets() {
   widgetWindowRect.position = ImGui::GetWindowPos();
   widgetWindowRect.size = ImGui::GetWindowSize();
   ImGui::Checkbox("Paint tiles (Q)", &paintTiles);
+  if (CustomSelectable("None (Esc)", isSelected(SelectState::None),
+                       ImGuiCol_MenuBarBg)) {
+    setSelect(SelectState::None);
+  }
   if (CustomSelectable("Collider (E)", isSelected(SelectState::Collider),
-                       ImGuiCol_MenuBarBg))
-    setSelect(SelectState::Collider);
+                       ImGuiCol_MenuBarBg)) {
+    setSelect(isSelected(SelectState::Collider) ? SelectState::None
+                                                : SelectState::Collider);
+  }
 
   ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
   if (ImGui::BeginTabBar("ResourcesTabBar", tab_bar_flags)) {
@@ -439,18 +462,14 @@ void Editor::tilesetSelectWidget() {
 }
 
 void Editor::entitiesWidget() {
-  bool noPlayer = playerIt == entities.end();
   ImGui::AlignTextToFramePadding();
   ImGui::Text("Add:");
   ImGui::SameLine();
-  if (!noPlayer) ImGui::BeginDisabled();
   Entity* addedEntity = nullptr;
   if (ImGui::Button("Player")) {
-    playerIt = entities.emplace(entities.end(), Entity{font, Entity::Player{}});
-    addedEntity = &*playerIt;
+    addedEntity = &entities.emplace_back(Entity{font, Entity::Player{}});
   }
   ImGui::SameLine();
-  if (!noPlayer) ImGui::EndDisabled();
   if (ImGui::Button("Character")) {
     addedEntity = &entities.emplace_back(Entity{font, Entity::Character{}});
   }
@@ -502,8 +521,9 @@ void Editor::entitiesWidget() {
               },
               [](Entity::Prop& prop) { return &prop.interactible.action; }},
           entity.data);
-      actionHolders[*action_holder].erase(action_holder);
-      if (it == playerIt) playerIt = entities.end();
+      if (action_holder) {
+        actionHolders[*action_holder].erase(action_holder);
+      }
       if (isSelected(SelectState::Entity) && &entity == selectedEntity)
         selectEntity(nullptr);
       it = entities.erase(it);
@@ -523,7 +543,7 @@ void Editor::actionsWidget() {
   auto action_target = [this, &currentHighlightedAction](Action*& action) {
     std::stringstream ss;
     ss << action;
-    if (ImGui::SmallButton(action ? ss.str().c_str() : "<no action>")) {
+    if (ImGui::Button(action ? ss.str().c_str() : "<no action>")) {
       action = nullptr;
       actionHolders[action].erase(&action);
     }
@@ -539,6 +559,11 @@ void Editor::actionsWidget() {
       ImGui::EndDragDropTarget();
     }
   };
+
+  ImGui::AlignTextToFramePadding();
+  ImGui::Text("Level start:");
+  ImGui::SameLine();
+  action_target(startAction);
 
   ImGui::SeparatorText("Interactibles");
   for (auto& entity : entities) {
@@ -559,6 +584,7 @@ void Editor::actionsWidget() {
     std::stringstream ss;
     ss << name << " @ " << &entity;
     ImGui::SetNextItemAllowOverlap();
+    ImGui::AlignTextToFramePadding();
     if (ImGui::Selectable(ss.str().c_str(), isSelected(SelectState::Entity) &&
                                                 selectedEntity == &entity))
       selectEntity(&entity);
@@ -576,6 +602,7 @@ void Editor::actionsWidget() {
         ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
         ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap;
     if (highlightedAction == &action) node_flags |= ImGuiTreeNodeFlags_Selected;
+    ImGui::AlignTextToFramePadding();
     bool node_open = ImGui::TreeNodeEx("##node", node_flags);
     auto preview_value =
         std::visit(overloaded{[](ActionData::Text&) { return "Text"; },
@@ -592,32 +619,37 @@ void Editor::actionsWidget() {
       ImGui::EndDragDropSource();
     }
     ImGui::SameLine(0.0f, 0.0f);
-    if (ImGui::SmallButton(preview_value)) ImGui::OpenPopup("ActionTypePopup");
+    if (ImGui::Button(preview_value)) ImGui::OpenPopup("ActionTypePopup");
     if (ImGui::BeginPopup("ActionTypePopup")) {
       if (ImGui::Selectable("Text", std::holds_alternative<ActionData::Text>(
                                         action.data.data))) {
         action.data.data = ActionData::Text{};
         action.pathbuf.clear();
+        action.intbuf.clear();
       }
       if (ImGui::Selectable("Image", std::holds_alternative<ActionData::Image>(
                                          action.data.data))) {
         action.data.data = ActionData::Image{};
         action.pathbuf.clear();
+        action.intbuf.clear();
       }
       if (ImGui::Selectable("Sound", std::holds_alternative<ActionData::Sound>(
                                          action.data.data))) {
         action.data.data = ActionData::Sound{};
         action.pathbuf.clear();
+        action.intbuf.clear();
       }
       if (ImGui::Selectable("Music", std::holds_alternative<ActionData::Music>(
                                          action.data.data))) {
         action.data.data = ActionData::Music{};
         action.pathbuf.clear();
+        action.intbuf.clear();
       }
       if (ImGui::Selectable("Level", std::holds_alternative<ActionData::Level>(
                                          action.data.data))) {
         action.data.data = ActionData::Level{};
         action.pathbuf.clear();
+        action.intbuf.clear();
       }
       ImGui::EndPopup();
     }
@@ -654,6 +686,8 @@ void Editor::actionsWidget() {
               },
               [&](ActionData::Level& level) {
                 ImGui::InputText("Path", &action.pathbuf);
+                ImGui::InputText("Player spot", &action.intbuf,
+                                 ImGuiInputTextFlags_CharsDecimal);
               },
               [](auto&) {  // TODO(des): finish fields for all other types
                 ImGui::Text("nothing yet...");
@@ -777,6 +811,7 @@ void Editor::load(const std::filesystem::path& filename) {
     backref.entities = std::move(entities);
     backref.actions = std::move(actions);
     backref.actionHolders = std::move(actionHolders);
+    backref.startAction = startAction;
   };
   try {
     std::ifstream in(filename);
@@ -787,11 +822,7 @@ void Editor::load(const std::filesystem::path& filename) {
     loadActions(data.actions);
     bindActionRefs(data);
     loadPopupText = "Loaded successfully";
-  } catch (const std::filesystem::filesystem_error& e) {
-    loadPopupText =
-        "failed to load level data from " + filename.string() + ": " + e.what();
-    rollback();
-  } catch (const std::runtime_error& e) {
+  } catch (const std::exception& e) {
     loadPopupText =
         "failed to load level data from " + filename.string() + ": " + e.what();
     rollback();
@@ -880,8 +911,8 @@ void Editor::loadTilemap(LevelData::Tilemap& data) {
   colliders.clear();
   for (int i = 0; i < data.height; i++) {
     for (int j = 0; j < data.width; j++) {
-      if (!data.noTileset) setTile({i, j}, data.tiles[i * data.width + j]);
-      if (data.colliders[i * data.width + j]) setCollider({i, j});
+      if (!data.noTileset) setTile({j, i}, data.tiles[i * data.width + j]);
+      if (data.colliders[i * data.width + j]) setCollider({j, i});
     }
   }
 }
@@ -921,7 +952,7 @@ sf::Vector2i Editor::saveTilemap(LevelData& data) {
     data.tilemap.tilesetPath = tilesetPath;
     data.tilemap.tilesetTileSize =
         tileset.tileSize
-            .x;  // NOTE: should non-square tiles be really supported?
+            .x;  // NOTE(des): should non-square tiles be really supported?
     data.tilemap.tiles.resize(width * height);
   }
   data.tilemap.colliders.resize(width * height);
@@ -961,24 +992,25 @@ void Editor::loadEntities(std::vector<EntityData>& data) {
                entity.data);
     entities.back().position = entity.position;
     prepareEntity(entities.back());
-    selectEntity(&entities.back());
+    selectEntity(&entities.back());  // NOTE(des): this hack stinks
   }
+  setSelect(SelectState::None);
 }
 
 void Editor::saveEntities(std::vector<EntityData>& data, sf::Vector2i origin) {
   for (auto& entity : entities) {
     std::visit(overloaded{
                    [&](Entity::Player& player) {
-                     data.emplace_back(
-                         EntityData{entity.position, EntityData::Player{}});
+                     data.emplace_back(EntityData{entity.position - origin,
+                                                  EntityData::Player{}});
                    },
                    [&](Entity::Character& character) {
-                     data.emplace_back(
-                         EntityData{entity.position, EntityData::Character{}});
+                     data.emplace_back(EntityData{entity.position - origin,
+                                                  EntityData::Character{}});
                    },
                    [&](Entity::Prop& prop) {
-                     data.emplace_back(
-                         EntityData{entity.position, EntityData::Prop{}});
+                     data.emplace_back(EntityData{entity.position - origin,
+                                                  EntityData::Prop{}});
                    },
                },
                entity.data);
@@ -1002,6 +1034,9 @@ void Editor::loadActions(std::vector<ActionData>& data) {
                                     ActionData::Level>) {
             action.pathbuf = actionType.filename;
           }
+          if constexpr (is_one_of_v<ActionType, ActionData::Level>) {
+            action.intbuf = std::to_string(actionType.playerSpot);
+          }
         },
         actionData.data);
   }
@@ -1019,6 +1054,9 @@ void Editor::saveActions(std::vector<ActionData>& data) {
                                     ActionData::Sound, ActionData::Music,
                                     ActionData::Level>) {
             actionType.filename = action.pathbuf;
+          }
+          if constexpr (is_one_of_v<ActionType, ActionData::Level>) {
+            actionType.playerSpot = std::stoi(action.intbuf);
           }
         },
         action.data.data);
@@ -1044,13 +1082,20 @@ void Editor::bindActionRefs(LevelData& data) {
           overloaded{
               [&](EntityData::Player& player) {},
               [&](EntityData::Character& character) {
-                std::get<Entity::Character>(entity.data).interactible.action =
-                    character.action == -1 ? nullptr
-                                           : actionRefs[character.action];
+                Action*& action = std::get<Entity::Character>(entity.data)
+                                      .interactible.action;
+                if (character.action != -1) {
+                  action = actionRefs.at(character.action);
+                  actionHolders[action].insert(&action);
+                }
               },
               [&](EntityData::Prop& prop) {
-                std::get<Entity::Prop>(entity.data).interactible.action =
-                    prop.action == -1 ? nullptr : actionRefs[prop.action];
+                Action*& action =
+                    std::get<Entity::Prop>(entity.data).interactible.action;
+                if (prop.action != -1) {
+                  action = actionRefs.at(prop.action);
+                  actionHolders[action].insert(&action);
+                }
               }},
           entityData.data);
     }
@@ -1060,12 +1105,22 @@ void Editor::bindActionRefs(LevelData& data) {
   for (std::size_t i = 0; i < data.nextAction.size(); ++it, i++) {
     int next = data.nextAction[i];
     auto& action = *it;
-    action.next = next == -1 ? nullptr : actionRefs[next];
+    if (next != -1) {
+      action.next = actionRefs.at(next);
+      actionHolders[action.next].insert(&action.next);
+    }
+  }
+
+  if (data.meta.startAction != -1) {
+    startAction = actionRefs.at(data.meta.startAction);
+    actionHolders[startAction].insert(&startAction);
+  } else {
+    startAction = nullptr;
   }
 }
 
 void Editor::bindActionIndices(LevelData& data) {
-  std::map<Action*, int> index;
+  std::unordered_map<Action*, int> index;
   index[nullptr] = -1;
   {
     int i = 0;
@@ -1101,6 +1156,8 @@ void Editor::bindActionIndices(LevelData& data) {
     auto& action = *it;
     data.nextAction[i] = index.at(action.next);
   }
+
+  data.meta.startAction = index.at(startAction);
 }
 
 void Editor::draw() {

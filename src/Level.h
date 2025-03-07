@@ -3,6 +3,8 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Time.hpp>
 #include <list>
+#include <optional>
+#include <set>
 
 #include "Common/Data/Level.h"
 #include "Entity/Background.h"
@@ -12,8 +14,11 @@
 #include "Game.h"
 
 class Level {
+  public:
+  static constexpr auto INTERACT_INTERVAL = sf::seconds(0.15f);
  public:
   Level(Game& game);
+  ~Level();
 
   void loadFromFile(const std::filesystem::path& filename);
   void unload();
@@ -22,21 +27,57 @@ class Level {
   void render(sf::RenderWindow& window);
 
  private:
+  void updateInput(sf::Time dt);
+
   void loadBackground(std::optional<LevelData::Background>& data);
   void loadTilemap(LevelData::Tilemap& data);
-  void loadEntities(LevelData::Tilemap& tilemap, std::vector<EntityData>& data);
+  void loadActions(std::vector<Action*>& actionRefs, LevelData& data);
+  void loadEntities(std::vector<Action*>& actionRefs,
+                    LevelData::Tilemap& tilemap, std::vector<EntityData>& data);
+
+  void setImageFrameActive(bool active);
+  void setTextFrameActive(bool active);
+  void setMenuFrameActive(bool active);
+
+  void onKeyPressed(sf::Event::KeyPressed keyPressed);
+  void onKeyReleased(sf::Event::KeyReleased keyReleased);
 
  public:
   Player* player;
 
  private:
   Game& game;
-  std::vector<std::shared_ptr<void>> resources;
+  std::set<std::string> resourceNames;
+  std::set<std::string> persistentResources;
   Background background;
   TileMap tilemap;
+  std::shared_ptr<sf::Music> music;
   std::list<std::unique_ptr<Entity>> entities;
   std::list<std::unique_ptr<Collider>> colliders;
   bool followPlayer = true;
   Action* activeAction = nullptr;
-  // TODO(des): store actions somewhere?
+
+  UIElement* menuFrame;
+
+  UIElement* textFrame;
+  sf::Text* textFrameText;
+  bool textClosed;
+
+  UIElement* imageFrame;
+  sf::RectangleShape* imageFrameShape;
+  bool imageClosed;
+
+  std::vector<std::unique_ptr<Action>> actions;
+
+  std::optional<std::filesystem::path> nextLevel;
+  int nextLevelPlayerSpot = 0;
+
+  bool menuPressed = false;
+  sf::Time interactInterval = sf::Time::Zero;
+  ConnectionGuard onKeyPressed_cg, onKeyReleased_cg;
+
+  friend class GameState;
+  friend class TextAction;
+  friend class ImageAction;
+  friend class MusicAction;
 };

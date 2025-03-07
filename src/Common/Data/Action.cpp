@@ -313,11 +313,13 @@ void save(ActionData::FadeOut& fadeOut, std::ostream& out) {
 // Level
 template <>
 ActionData::Level load(std::istream& in) {
-  return {readOne<std::filesystem::path>(in)};
+  ActionData::Level level;
+  in >> level.filename >> level.playerSpot >> std::ws;
+  return level;
 }
 template <>
 void save(ActionData::Level& level, std::ostream& out) {
-  out << level.filename << '\n';
+  out << level.filename << ' ' << level.playerSpot << '\n';
 }
 
 // Tile

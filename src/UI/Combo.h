@@ -14,7 +14,6 @@ class Combo : public UIElement {
 
  public:
   class Popup : public UIElement {
-    // TODO(des): culling & scrolling if too many options
    private:
     Popup(const sf::Font& font, sf::Vector2f optionSize, unsigned int textSize,
           std::vector<sf::String>& options, sig_t& onSelect_sig,

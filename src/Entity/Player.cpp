@@ -30,10 +30,10 @@ Player::Player(Game& game, const sf::Texture& texture, float tileSize,
 void Player::update(sf::Time dt) {
   if (control) {
     updateInput();
-    MovableEntity::update(dt);
-    ensureAnimationState();
-    DrawableEntity::update(dt);
   }
+  MovableEntity::update(dt);
+  ensureAnimationState();
+  DrawableEntity::update(dt);
 }
 
 Action* Player::updateInteraction() {

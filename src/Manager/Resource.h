@@ -53,7 +53,6 @@ class ResourceManager {
     return res;
   }
 
-  template <typename Resource>
   void release(const std::string& key) {
     resources.erase(key);
     // SDEBUG(" ", "released", filename);

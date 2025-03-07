@@ -16,6 +16,7 @@ class Editor {
   struct Action {
     ActionData data;
     std::string pathbuf;
+    std::string intbuf;
     Action* next = nullptr;
   };
 
@@ -67,12 +68,13 @@ class Editor {
   static constexpr sf::Color backgroundColor = sf::Color(10, 10, 10);
   static constexpr sf::Color gridColor = {20, 20, 20};
   static constexpr sf::Color sparseGridColor = {50, 50, 50};
-  static constexpr sf::Color tileSelectColor = {0, 255, 0, 128};
-  static constexpr sf::Color colliderSelectColor = {0, 128, 128, 128};
+  static constexpr sf::Color noneSelectColor = {100, 100, 100, 200};
+  static constexpr sf::Color tileSelectColor = {0, 255, 0, 200};
+  static constexpr sf::Color colliderSelectColor = {0, 128, 128, 200};
+  static constexpr sf::Color entitySelectColor = {128, 64, 64, 200};
   static constexpr sf::Color colliderFrameColor = {0, 0, 255, 128};
-  static constexpr sf::Color entitySelectColor = {128, 64, 64, 128};
-  static constexpr sf::Color entityFrameSelectedColor = {255, 0, 128, 128};
-  static constexpr sf::Color entityFrameColor = {255, 0, 0, 128};
+  static constexpr sf::Color selectedEntityColor = {255, 0, 128, 220};
+  static constexpr sf::Color entityColor = {255, 0, 0, 220};
 
   // Variables
   float panScaling = -1.2f;
@@ -85,11 +87,7 @@ class Editor {
 
   // Controllable state
   bool paintTiles = true;
-  enum class SelectState {
-    Tile,
-    Collider,
-    Entity
-  } selectState = SelectState::Tile;
+  enum class SelectState { None, Tile, Collider, Entity } selectState;
   int selectedTile = -1;
   Entity* selectedEntity = nullptr;
 
@@ -110,10 +108,9 @@ class Editor {
   float saveTileSize = 64.f;
 
   std::list<Entity> entities;
-  std::list<Entity>::iterator playerIt = entities.end();
-  bool toChangeScale = false;
-
   std::list<Action> actions;
+  Action* startAction = nullptr;
+  bool toChangeScale = false;
 
   // Inner state
   bool panButtonPressed = false;
@@ -124,7 +121,7 @@ class Editor {
   sf::IntRect widgetWindowRect;
   std::map<std::pair<int, int>, std::pair<int, sf::Sprite>> tiles;
   std::set<std::pair<int, int>> colliders;
-  std::map<Action*, std::set<Action**>> actionHolders;
+  std::unordered_map<Action*, std::set<Action**>> actionHolders;
   Action* highlightedAction = nullptr;
 
   // Members
@@ -205,7 +202,7 @@ class Editor {
 
   void loadActions(std::vector<ActionData>& data);
   void saveActions(std::vector<ActionData>& data);
-  
+
   void bindActionRefs(LevelData& data);
   void bindActionIndices(LevelData& data);
 

@@ -151,9 +151,10 @@ void LevelData::saveActionData(std::ostream& out) {
 }
 
 void LevelData::loadMetaData(std::istream& in) {
-  in >> meta.followPlayer >> std::ws;
+  in >> meta.followPlayer >> meta.startAction >> std::ws;
 }
 
 void LevelData::saveMetaData(std::ostream& out) {
-  out << META_HEADER << '\n' << meta.followPlayer << '\n';
+  out << META_HEADER << '\n'
+      << meta.followPlayer << ' ' << meta.startAction << '\n';
 }

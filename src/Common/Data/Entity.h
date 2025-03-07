@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <filesystem>
 #include <variant>
@@ -8,6 +9,14 @@ class EntityData {
  public:
   struct Sprite {
     std::filesystem::path textureFile;
+    bool isAnimated;
+    union {
+      sf::IntRect rect;
+      struct {
+        int spriteSheet;
+        int startAnimation;
+      } anim;
+    };
   };
 
   struct Player {

@@ -35,15 +35,19 @@ x settings menu
 x loading settings
 x loading levels
 x add license
-action processing in game
-action menu in editor
-think about how to implement text state machine through actions
+x action processing in game
+x action menu in editor
 x dialog box
-saving settings
-loading entities in levels
+x loading entities in levels
+trigger zone
+sprite sheets in editor
+loading sprites in levels
+action action
+(A) the game content itself
 build for multiple platforms
 test build on other platforms
-(A) the game content itself
+*saving settings
 *benchmarking
 *text animation w/ custom text class
 *embed resources into binary
+*unicode support

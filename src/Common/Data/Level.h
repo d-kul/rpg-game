@@ -44,6 +44,7 @@ class LevelData {
 
   struct Meta {
     bool followPlayer = true;
+    int startAction = -1;
   } meta;
 
   static LevelData load(std::istream& in);

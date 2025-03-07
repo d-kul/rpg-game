@@ -108,6 +108,7 @@ class ActionData {
   struct Level {
     static constexpr const char* HEADER = "<Level>";
     std::filesystem::path filename;
+    int playerSpot = 0;
   };
   struct Tile {
     static constexpr const char* HEADER = "<Tile>";

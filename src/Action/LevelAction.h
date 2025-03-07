@@ -1,19 +1,27 @@
 #pragma once
 
+#include <filesystem>
+#include <optional>
+
 #include "Action.h"
-#include "State/GameState.h"
 
 class LevelAction : public Action {
  public:
-  LevelAction(GameState& state, std::filesystem::path filename)
-      : state(state), filename(std::move(filename)) {}
+  LevelAction(std::optional<std::filesystem::path>& target,
+              std::filesystem::path filename, int& playerSpot, int spot)
+      : target(target),
+        playerSpot(playerSpot),
+        filename(filename),
+        spot(spot) {}
 
-  bool update(sf::Time dt) override {
-    state.loadNextLevel(filename);
-    return false;
+  void start() override {
+    playerSpot = spot;
+    target = filename;
   }
 
  private:
-  GameState& state;
+  std::optional<std::filesystem::path>& target;
   std::filesystem::path filename;
+  int& playerSpot;
+  int spot;
 };
