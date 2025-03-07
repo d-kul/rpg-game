@@ -122,7 +122,8 @@ class ActionData {
   };
   struct Action {
     static constexpr const char* HEADER = "<Action>";
-    // TODO(des): set action action
+    int holder = -1;
+    int action = -1;
   };
   struct State {
     static constexpr const char* HEADER = "<State>";

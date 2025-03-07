@@ -37,7 +37,13 @@ void Player::update(sf::Time dt) {
 }
 
 Action* Player::updateInteraction() {
+  if (triggerAction) {
+    Action* res = triggerAction;
+    triggerAction = nullptr;
+    return res;
+  }
   if (!positionSnapped || !interactKeyClick) return nullptr;
+
   sf::Vector2f position = getPosition();
   switch (animationState.direction) {
     case AnimationState::Up:
@@ -142,6 +148,10 @@ void Player::updateAnimation() {
     setFrames(frames, 3);
     setFrameRate(frames.size() * RUNNING_FACTOR);
   }
+}
+
+void Player::onSnap() {
+  triggerAction = interactibleManager.trigger(getPosition());
 }
 
 void Player::onStop() { animationState.idle = true; }

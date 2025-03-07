@@ -350,11 +350,13 @@ void save(ActionData::Collider& collider, std::ostream& out) {
 // Action
 template <>
 ActionData::Action load(std::istream& in) {
-  return {};  // TODO(des): load action action
+  ActionData::Action action;
+  in >> action.holder >> action.action >> std::ws;
+  return action;
 }
 template <>
 void save(ActionData::Action& action, std::ostream& out) {
-  // TODO(des): save action action
+  out << action.holder << ' ' << action.action << '\n';
 }
 
 // State

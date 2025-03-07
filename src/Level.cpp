@@ -6,6 +6,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "Action/ActionAction.h"
 #include "Action/ImageAction.h"
 #include "Action/LevelAction.h"
 #include "Action/MusicAction.h"
@@ -15,6 +16,7 @@
 #include "Entity/Interactible.h"
 #include "Entity/Player.h"
 #include "Entity/TileMapCollider.h"
+#include "Entity/Trigger.h"
 #include "Game.h"
 
 Level::Level(Game& game) : game(game) {}
@@ -38,8 +40,11 @@ void Level::loadFromFile(const std::filesystem::path& filename) {
     loadBackground(data.background);
     loadTilemap(data.tilemap);
     std::vector<Action*> actionRefs;
-    loadActions(actionRefs, data);
-    loadEntities(actionRefs, data.tilemap, data.entities);
+    std::vector<std::pair<ActionAction*, ActionData::Action>> actionActions;
+    std::vector<InteractibleEntity*> interactibleRefs;
+    loadActions(actionRefs, actionActions, data);
+    loadEntities(actionRefs, interactibleRefs, data.tilemap, data.entities);
+    bindRefs(actionActions, interactibleRefs);
     for (auto& name : oldResourceNames) {
       if (!resourceNames.count(name)) {
         game.resourceManager.release(name);
@@ -145,7 +150,10 @@ void Level::loadTilemap(LevelData::Tilemap& data) {
   colliders.push_back(std::move(tilemap_collider));
 }
 
-void Level::loadActions(std::vector<Action*>& actionRefs, LevelData& data) {
+void Level::loadActions(
+    std::vector<Action*>& actionRefs,
+    std::vector<std::pair<ActionAction*, ActionData::Action>>& actionActions,
+    LevelData& data) {
   for (auto& action : data.actions) {
     std::visit(
         overloaded{
@@ -184,10 +192,21 @@ void Level::loadActions(std::vector<Action*>& actionRefs, LevelData& data) {
                   level.playerSpot));
               actionRefs.push_back(actions.back().get());
             },
-            [&](auto&) {  // TODO(des): other actions
-
+            [&](ActionData::Action& action) {
+              auto actionAction =
+                  std::make_unique<ActionAction>(nullptr, nullptr);
+              actionActions.push_back({actionAction.get(), action});
+              actions.emplace_back(std::move(actionAction));
+              actionRefs.push_back(actions.back().get());
+            },
+            [&](auto&) {
+              // TODO(des): other actions
             }},
         action.data);
+  }
+  for (auto& [actionAction, action] : actionActions) {
+    actionAction->action =
+        action.action == -1 ? nullptr : actionRefs.at(action.action);
   }
   for (std::size_t i = 0; i < actions.size(); i++) {
     int next = data.nextAction.at(i);
@@ -196,41 +215,64 @@ void Level::loadActions(std::vector<Action*>& actionRefs, LevelData& data) {
 }
 
 void Level::loadEntities(std::vector<Action*>& actionRefs,
+                         std::vector<InteractibleEntity*>& interactibleRefs,
                          LevelData::Tilemap& tilemap,
                          std::vector<EntityData>& data) {
   int players = 0;
-  int entityIdx = 0;
   for (auto& entity : data) {
+    InteractibleEntity* interactible = nullptr;
     std::visit(
-        overloaded{[&](EntityData::Player data) {
-                     if (players++ != nextLevelPlayerSpot) return;
-                     auto player =
-                         std::make_unique<Player>(game, tilemap.tileSize);
-                     player->setPosition(sf::Vector2f{entity.position} *
-                                         tilemap.tileSize);
-                     player->setDestination(sf::Vector2f{entity.position} *
-                                            tilemap.tileSize);
-                     this->player = player.get();
-                     entities.push_front(std::move(player));
-                   },
-                   [&](EntityData::Character& data) {
-                     // TODO(des): sprite data
-                     auto character = std::make_unique<InteractibleEntity>(
-                         game.interactibleManager, actionRefs.at(data.action));
-                     character->setPosition(sf::Vector2f{entity.position} *
-                                            tilemap.tileSize);
-                     entities.push_back(std::move(character));
-                   },
-                   [&](EntityData::Prop& data) {
-                     // TODO(des): sprite data
-                     auto prop = std::make_unique<InteractibleEntity>(
-                         game.interactibleManager, actionRefs.at(data.action));
-                     prop->setPosition(sf::Vector2f{entity.position} *
-                                       tilemap.tileSize);
-                     entities.push_back(std::move(prop));
-                   }},
+        overloaded{
+            [&](EntityData::Player data) {
+              if (players++ != nextLevelPlayerSpot) return;
+              auto player = std::make_unique<Player>(game, tilemap.tileSize);
+              player->setPosition(sf::Vector2f{entity.position} *
+                                  tilemap.tileSize);
+              player->setDestination(sf::Vector2f{entity.position} *
+                                     tilemap.tileSize);
+              this->player = player.get();
+              entities.push_front(std::move(player));
+            },
+            [&](EntityData::Character& data) {
+              // TODO(des): sprite data
+              auto character = std::make_unique<InteractibleEntity>(
+                  game.interactibleManager,
+                  data.action == -1 ? nullptr : actionRefs.at(data.action));
+              character->setPosition(sf::Vector2f{entity.position} *
+                                     tilemap.tileSize);
+              interactible = character.get();
+              entities.push_back(std::move(character));
+            },
+            [&](EntityData::Prop& data) {
+              // TODO(des): sprite data
+              auto prop = std::make_unique<InteractibleEntity>(
+                  game.interactibleManager,
+                  data.action == -1 ? nullptr : actionRefs.at(data.action));
+              prop->setPosition(sf::Vector2f{entity.position} *
+                                tilemap.tileSize);
+              interactible = prop.get();
+              entities.push_back(std::move(prop));
+            },
+            [&](EntityData::Trigger& data) {
+              auto trigger = std::make_unique<Trigger>(
+                  game.interactibleManager,
+                  data.action == -1 ? nullptr : actionRefs.at(data.action));
+              trigger->setPosition(sf::Vector2f{entity.position} *
+                                   tilemap.tileSize);
+              interactible = static_cast<InteractibleEntity*>(trigger.get());
+              entities.push_back(std::move(trigger));
+            }},
         entity.data);
-    entityIdx++;
+    interactibleRefs.push_back(interactible);
+  }
+}
+
+void Level::bindRefs(
+    std::vector<std::pair<ActionAction*, ActionData::Action>>& actionActions,
+    std::vector<InteractibleEntity*>& interactibleRefs) {
+  for (auto& [actionAction, action] : actionActions) {
+    actionAction->holder =
+        action.holder == -1 ? nullptr : interactibleRefs.at(action.holder);
   }
 }
 

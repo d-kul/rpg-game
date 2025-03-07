@@ -80,31 +80,32 @@ add_executable(game
   src/UI/Combo.cpp
   src/Action.h
   src/Action.cpp
-  src/Action/FadeInAction.h
   src/Action/WaitAction.h
-  src/Action/TileAction.h
-  src/Action/MultipleAction.h
-  src/Action/CharNameAction.h
+  src/Action/WaitInputAction.h
   src/Action/TextAction.h
   src/Action/TextSoundAction.h
-  src/Action/MoveCameraAction.h
-  src/Action/MoveAction.h
-  src/Action/MusicPlayAction.h
-  src/Action/ColliderAction.h
-  src/Action/PositionCameraAction.h
-  src/Action/MusicPauseAction.h
-  src/Action/MusicAction.h
   src/Action/TextRateAction.h
-  src/Action/CharIconAction.h
-  src/Action/SoundAction.h
-  src/Action/AnimationAction.h
-  src/Action/MusicStopAction.h
-  src/Action/WaitInputAction.h
-  src/Action/FadeOutAction.h
-  src/Action/PositionAction.h
+  src/Action/CharNameAction.h
   src/Action/CharNameFontAction.h
+  src/Action/CharIconAction.h
   src/Action/ImageAction.h
+  src/Action/SoundAction.h
+  src/Action/MusicAction.h
+  src/Action/MusicPlayAction.h
+  src/Action/MusicPauseAction.h
+  src/Action/MusicStopAction.h
+  src/Action/AnimationAction.h
+  src/Action/PositionAction.h
+  src/Action/MoveAction.h
+  src/Action/PositionCameraAction.h
+  src/Action/MoveCameraAction.h
+  src/Action/FadeInAction.h
+  src/Action/FadeOutAction.h
   src/Action/LevelAction.h
+  src/Action/TileAction.h
+  src/Action/ColliderAction.h
+  src/Action/ActionAction.h
+  src/Action/MultipleAction.h
   src/Resource/AbstractSpriteSheet.h
   src/Resource/SpriteSheet.h
   src/Resource/TileSet.h
@@ -115,6 +116,8 @@ add_executable(game
   src/Entity/Drawable.cpp
   src/Entity/Interactible.h
   src/Entity/Interactible.cpp
+  src/Entity/Trigger.h
+  src/Entity/Trigger.cpp
   src/Entity/Actor.h
   src/Entity/Player.h
   src/Entity/Player.cpp

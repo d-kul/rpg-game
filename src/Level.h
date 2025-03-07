@@ -6,6 +6,7 @@
 #include <optional>
 #include <set>
 
+#include "Action/ActionAction.h"
 #include "Common/Data/Level.h"
 #include "Entity/Background.h"
 #include "Entity/Collider.h"
@@ -14,8 +15,9 @@
 #include "Game.h"
 
 class Level {
-  public:
+ public:
   static constexpr auto INTERACT_INTERVAL = sf::seconds(0.15f);
+
  public:
   Level(Game& game);
   ~Level();
@@ -31,9 +33,16 @@ class Level {
 
   void loadBackground(std::optional<LevelData::Background>& data);
   void loadTilemap(LevelData::Tilemap& data);
-  void loadActions(std::vector<Action*>& actionRefs, LevelData& data);
+  void loadActions(
+      std::vector<Action*>& actionRefs,
+      std::vector<std::pair<ActionAction*, ActionData::Action>>& actionActions,
+      LevelData& data);
   void loadEntities(std::vector<Action*>& actionRefs,
+                    std::vector<InteractibleEntity*>& interactibleRefs,
                     LevelData::Tilemap& tilemap, std::vector<EntityData>& data);
+  void bindRefs(
+      std::vector<std::pair<ActionAction*, ActionData::Action>>& actionActions,
+      std::vector<InteractibleEntity*>& interactibleRefs);
 
   void setImageFrameActive(bool active);
   void setTextFrameActive(bool active);

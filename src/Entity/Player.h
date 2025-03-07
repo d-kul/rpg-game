@@ -33,6 +33,7 @@ class Player : public Actor {
   void updateAnimation();
 
   void onSetDestination() override;
+  void onSnap() override;
   void onStop() override;
 
  public:
@@ -50,6 +51,7 @@ class Player : public Actor {
   ColliderManager& colliderManager;
 
   AnimationState animationState, prevAnimationState;
+  Action* triggerAction = nullptr;
 
   float tileSize;
   float movementSpeed;

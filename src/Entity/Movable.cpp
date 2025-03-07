@@ -15,6 +15,7 @@ void MovableEntity::update(sf::Time dt) {
     if (!positionSnapped) {
       setPosition(destination);
       positionSnapped = true;
+      onSnap();
       if (!nextDestination) {
         onStop();
       }

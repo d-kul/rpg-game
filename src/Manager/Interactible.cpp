@@ -4,22 +4,47 @@
 
 #include "Core/Logger.h"
 
-void InteractibleManager::addInteractible(InteractibleEntity& interactible) {
+void InteractibleManager::add(InteractibleEntity& interactible) {
   DEBUG("added interactible ", &interactible);
-  elements.push_back(&interactible);
+  interactibles.push_back(&interactible);
 }
 
-void InteractibleManager::removeInteractible(InteractibleEntity& interactible) {
+void InteractibleManager::remove(InteractibleEntity& interactible) {
   DEBUG("removed interactible ", &interactible);
-  elements.erase(std::find(elements.begin(), elements.end(), &interactible));
+  interactibles.erase(
+      std::find(interactibles.begin(), interactibles.end(), &interactible));
+}
+
+void InteractibleManager::addTrigger(InteractibleEntity& trigger) {
+  DEBUG("added trigger ", &trigger);
+  triggers.insert(&trigger);
+}
+
+void InteractibleManager::removeTrigger(InteractibleEntity& trigger) {
+  DEBUG("removed trigger ", &trigger);
+  triggers.erase(&trigger);
 }
 
 Action* InteractibleManager::interact(sf::Vector2f position) {
   auto it = std::find_if(
-      elements.begin(), elements.end(), [&](InteractibleEntity* i) {
+      interactibles.begin(), interactibles.end(), [&](InteractibleEntity* i) {
+        return triggers.count(i) == 0 &&
+               (i->getPosition() - position).length() < INTERACT_RANGE;
+      });
+  if (it != interactibles.end()) {
+    if ((*it)->action) {
+      return (*it)->action;
+    }
+  }
+  return nullptr;
+}
+
+Action* InteractibleManager::trigger(sf::Vector2f position) {
+  auto it = std::find_if(
+      triggers.begin(), triggers.end(), [&](InteractibleEntity* i) {
         return (i->getPosition() - position).length() < INTERACT_RANGE;
       });
-  if (it != elements.end()) {
+  if (it != triggers.end()) {
     if ((*it)->action) {
       return (*it)->action;
     }

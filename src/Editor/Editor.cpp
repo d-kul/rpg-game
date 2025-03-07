@@ -57,6 +57,8 @@ Editor::Editor()
 
 void Editor::run() {
   while (window.isOpen()) {
+    moveUpButtonClicked = false;
+    moveDownButtonClicked = false;
     while (const auto event = window.pollEvent()) {
       ImGui::SFML::ProcessEvent(window, *event);
       handleInput(*event);
@@ -176,6 +178,28 @@ void Editor::handleInput(sf::Event event) {
       !widgetWindowRect.contains(position)) {
     handleKeys(event);
     handleTiles(event);
+  }
+  if (auto keyPressed = event.getIf<sf::Event::KeyPressed>()) {
+    if (keyPressed->code == moveUpKey) {
+      if (!moveUpButtonPressed) {
+        moveUpButtonClicked = true;
+      }
+      moveUpButtonPressed = true;
+    }
+    if (keyPressed->code == moveDownKey) {
+      if (!moveDownButtonPressed) {
+        moveDownButtonClicked = true;
+      }
+      moveDownButtonPressed = true;
+    }
+  }
+  if (auto keyReleased = event.getIf<sf::Event::KeyReleased>()) {
+    if (keyReleased->code == moveUpKey) {
+      moveUpButtonPressed = false;
+    }
+    if (keyReleased->code == moveDownKey) {
+      moveDownButtonPressed = false;
+    }
   }
 }
 
@@ -477,6 +501,10 @@ void Editor::entitiesWidget() {
   if (ImGui::Button("Prop")) {
     addedEntity = &entities.emplace_back(Entity{font, Entity::Prop{}});
   }
+  ImGui::SameLine();
+  if (ImGui::Button("Trigger")) {
+    addedEntity = &entities.emplace_back(Entity{font, Entity::Trigger{}});
+  }
   if (addedEntity) {
     prepareEntity(*addedEntity);
     selectEntity(addedEntity);
@@ -487,13 +515,14 @@ void Editor::entitiesWidget() {
                     ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY);
 
   const float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
-  int i = 0;
-  for (auto it = entities.begin(); it != entities.end();) {
+  auto to_delete = entities.end();
+  for (auto it = entities.begin(); it != entities.end(); ++it) {
     auto& entity = *it;
     auto name = std::visit(
         overloaded{[](Entity::Player& player) { return "Player"; },
                    [](Entity::Character& character) { return "Character"; },
-                   [](Entity::Prop& prop) { return "Prop"; }},
+                   [](Entity::Prop& prop) { return "Prop"; },
+                   [](Entity::Trigger& trigger) { return "Trigger"; }},
         entity.data);
     ImGuiTreeNodeFlags node_flags =
         ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
@@ -506,31 +535,41 @@ void Editor::entitiesWidget() {
     if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
       selectEntity(&entity);
     ImGui::SameLine(ImGui::GetWindowWidth() - 63, spacing);
-    bool deleteEntity = ImGui::SmallButton("Delete");
+    if (ImGui::SmallButton("Delete")) {
+      to_delete = it;
+    }
     if (node_open) {
       ImGui::Text("Position: %d,%d", entity.position.x, entity.position.y);
       ImGui::TreePop();
     }
     ImGui::PopID();
-    if (deleteEntity) {
-      auto action_holder = std::visit(
-          overloaded{
-              [](Entity::Player& player) -> Action** { return nullptr; },
-              [](Entity::Character& character) {
-                return &character.interactible.action;
-              },
-              [](Entity::Prop& prop) { return &prop.interactible.action; }},
-          entity.data);
-      if (action_holder) {
-        actionHolders[*action_holder].erase(action_holder);
+  }
+  if (to_delete != entities.end()) {
+    auto& entity = *to_delete;
+    auto action_holder = std::visit(
+        overloaded{[](Entity::Player& player) -> Action** { return nullptr; },
+                   [](Entity::Character& character) {
+                     return &character.interactible.action;
+                   },
+                   [](Entity::Prop& prop) { return &prop.interactible.action; },
+                   [](Entity::Trigger& trigger) {
+                     return &trigger.interactible.action;
+                   }},
+        entity.data);
+    if (action_holder) {
+      actionHolders[*action_holder].erase(action_holder);
+      if (auto it = holderHolders.find(action_holder);
+          it != holderHolders.end()) {
+        for (Action* action : it->second) {
+          action->holderBuf = nullptr;
+          action->holderEntityBuf = nullptr;
+        }
+        holderHolders.erase(it);
       }
-      if (isSelected(SelectState::Entity) && &entity == selectedEntity)
-        selectEntity(nullptr);
-      it = entities.erase(it);
-    } else {
-      ++it;
     }
-    i++;
+    if (isSelected(SelectState::Entity) && &entity == selectedEntity)
+      selectEntity(nullptr);
+    entities.erase(to_delete);
   }
 
   ImGui::EndChild();
@@ -539,31 +578,12 @@ void Editor::entitiesWidget() {
 void Editor::spriteSheetsWidget() { ImGui::Text("sprite sheets"); }
 
 void Editor::actionsWidget() {
-  Action* currentHighlightedAction = nullptr;
-  auto action_target = [this, &currentHighlightedAction](Action*& action) {
-    std::stringstream ss;
-    ss << action;
-    if (ImGui::Button(action ? ss.str().c_str() : "<no action>")) {
-      action = nullptr;
-      actionHolders[action].erase(&action);
-    }
-    if (ImGui::IsItemHovered()) {
-      currentHighlightedAction = action;
-    }
-    if (ImGui::BeginDragDropTarget()) {
-      if (const ImGuiPayload* payload =
-              ImGui::AcceptDragDropPayload("ActionPayload")) {
-        action = *(Action**)payload->Data;
-        actionHolders[action].insert(&action);
-      }
-      ImGui::EndDragDropTarget();
-    }
-  };
+  currentHighlightedAction = nullptr;
 
   ImGui::AlignTextToFramePadding();
   ImGui::Text("Level start:");
   ImGui::SameLine();
-  action_target(startAction);
+  actionTarget(startAction);
 
   ImGui::SeparatorText("Interactibles");
   for (auto& entity : entities) {
@@ -577,6 +597,10 @@ void Editor::actionsWidget() {
                           [&](Entity::Prop& prop) {
                             name = "Prop";
                             interactibleAddr = &prop.interactible;
+                          },
+                          [&](Entity::Trigger& trigger) {
+                            name = "Trigger";
+                            interactibleAddr = &trigger.interactible;
                           }},
                entity.data);
     if (!interactibleAddr) continue;
@@ -585,23 +609,41 @@ void Editor::actionsWidget() {
     ss << name << " @ " << &entity;
     ImGui::SetNextItemAllowOverlap();
     ImGui::AlignTextToFramePadding();
-    if (ImGui::Selectable(ss.str().c_str(), isSelected(SelectState::Entity) &&
-                                                selectedEntity == &entity))
+    if (ImGui::Selectable(
+            ss.str().c_str(),
+            isSelected(SelectState::Entity) && selectedEntity == &entity,
+            highlightedHolderEntity == &entity ? ImGuiSelectableFlags_Highlight
+                                               : ImGuiSelectableFlags_None)) {
       selectEntity(&entity);
+    }
+
+    if (ImGui::BeginDragDropSource()) {
+      std::pair<Action**, Entity*> payload = {&interactibleAddr->action,
+                                              &entity};
+      ImGui::SetDragDropPayload("HolderPayload",
+                                reinterpret_cast<const void*>(&payload),
+                                sizeof(decltype(payload)));
+      ImGui::Text("%s @ %p", name, &entity);
+      ImGui::EndDragDropSource();
+    }
 
     ImGui::SameLine();
-    action_target(interactibleAddr->action);
+    actionTarget(interactibleAddr->action);
     ImGui::PopID();
   }
+  highlightedHolderEntity = nullptr;
 
   ImGui::SeparatorText("Actions");
-  for (auto it = actions.begin(); it != actions.end();) {
+  auto to_delete = actions.end();
+  auto to_swap = actions.end();
+  for (auto it = actions.begin(); it != actions.end(); ++it) {
     auto& action = *it;
     ImGui::PushID(&action);
     ImGuiTreeNodeFlags node_flags =
         ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
         ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap;
-    if (highlightedAction == &action) node_flags |= ImGuiTreeNodeFlags_Selected;
+
+    if (highlightedAction == &action) node_flags |= ImGuiTreeNodeFlags_Framed;
     ImGui::AlignTextToFramePadding();
     bool node_open = ImGui::TreeNodeEx("##node", node_flags);
     auto preview_value =
@@ -610,6 +652,7 @@ void Editor::actionsWidget() {
                               [](ActionData::Sound&) { return "Sound"; },
                               [](ActionData::Music&) { return "Music"; },
                               [](ActionData::Level&) { return "Level"; },
+                              [](ActionData::Action&) { return "Action"; },
                               [](auto&) { return "Something else"; }},
                    action.data.data);
     if (ImGui::BeginDragDropSource()) {
@@ -618,47 +661,65 @@ void Editor::actionsWidget() {
       ImGui::Text("%s @ %p", preview_value, &action);
       ImGui::EndDragDropSource();
     }
+    if (ImGui::IsItemHovered()) {
+      if (moveUpButtonClicked && it != actions.begin()) {
+        to_swap = std::prev(it);
+      } else if (moveDownButtonClicked && std::next(it) != actions.end()) {
+        to_swap = it;
+      }
+    }
     ImGui::SameLine(0.0f, 0.0f);
     if (ImGui::Button(preview_value)) ImGui::OpenPopup("ActionTypePopup");
     if (ImGui::BeginPopup("ActionTypePopup")) {
+      bool selected = false;
       if (ImGui::Selectable("Text", std::holds_alternative<ActionData::Text>(
                                         action.data.data))) {
         action.data.data = ActionData::Text{};
-        action.pathbuf.clear();
-        action.intbuf.clear();
+        selected = true;
       }
       if (ImGui::Selectable("Image", std::holds_alternative<ActionData::Image>(
                                          action.data.data))) {
         action.data.data = ActionData::Image{};
-        action.pathbuf.clear();
-        action.intbuf.clear();
+        selected = true;
       }
       if (ImGui::Selectable("Sound", std::holds_alternative<ActionData::Sound>(
                                          action.data.data))) {
         action.data.data = ActionData::Sound{};
-        action.pathbuf.clear();
-        action.intbuf.clear();
+        selected = true;
       }
       if (ImGui::Selectable("Music", std::holds_alternative<ActionData::Music>(
                                          action.data.data))) {
         action.data.data = ActionData::Music{};
-        action.pathbuf.clear();
-        action.intbuf.clear();
+        selected = true;
       }
       if (ImGui::Selectable("Level", std::holds_alternative<ActionData::Level>(
                                          action.data.data))) {
         action.data.data = ActionData::Level{};
-        action.pathbuf.clear();
-        action.intbuf.clear();
+        selected = true;
+      }
+      if (ImGui::Selectable(
+              "Action",
+              std::holds_alternative<ActionData::Action>(action.data.data))) {
+        action.data.data = ActionData::Action{};
+        selected = true;
+      }
+      if (selected) {
+        action.pathBuf.clear();
+        action.intBuf.clear();
+        action.actionBuf = nullptr;
+        action.holderBuf = nullptr;
+        action.holderEntityBuf = nullptr;
       }
       ImGui::EndPopup();
     }
     ImGui::SameLine();
     ImGui::Text("@ %p", &action);
     ImGui::SameLine();
-    action_target(action.next);
+    actionTarget(action.next);
     ImGui::SameLine(ImGui::GetWindowWidth() - 63);
-    bool deleteAction = ImGui::SmallButton("Delete");
+    if (ImGui::SmallButton("Delete")) {
+      to_delete = it;
+    }
     if (node_open) {
       std::visit(
           overloaded{
@@ -666,10 +727,10 @@ void Editor::actionsWidget() {
                 ImGui::InputTextMultiline("Text##field", &text.text);
               },
               [&](ActionData::Image& image) {
-                ImGui::InputText("Path", &action.pathbuf);
+                ImGui::InputText("Path", &action.pathBuf);
               },
               [&](ActionData::Sound& sound) {
-                ImGui::InputText("Path", &action.pathbuf);
+                ImGui::InputText("Path", &action.pathBuf);
                 ImGui::Checkbox("Looping", &sound.looping);
                 ImGui::DragFloat("Offset (s)", &sound.offsetSeconds, 0.05f, 0.f,
                                  FLT_MAX, "%.2f");
@@ -677,7 +738,7 @@ void Editor::actionsWidget() {
                                  "%.1f");
               },
               [&](ActionData::Music& music) {
-                ImGui::InputText("Path", &action.pathbuf);
+                ImGui::InputText("Path", &action.pathBuf);
                 ImGui::Checkbox("Looping", &music.looping);
                 ImGui::DragFloat("Offset (s)", &music.offsetSeconds, 0.05f, 0.f,
                                  FLT_MAX, "%.2f");
@@ -685,9 +746,19 @@ void Editor::actionsWidget() {
                                  "%.1f");
               },
               [&](ActionData::Level& level) {
-                ImGui::InputText("Path", &action.pathbuf);
-                ImGui::InputText("Player spot", &action.intbuf,
+                ImGui::InputText("Path", &action.pathBuf);
+                ImGui::InputText("Player spot", &action.intBuf,
                                  ImGuiInputTextFlags_CharsDecimal);
+              },
+              [&](ActionData::Action&) {
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("Holder:");
+                ImGui::SameLine();
+                holderTarget(action, "##holder");
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("Action:");
+                ImGui::SameLine();
+                actionTarget(action.actionBuf, "##action");
               },
               [](auto&) {  // TODO(des): finish fields for all other types
                 ImGui::Text("nothing yet...");
@@ -696,21 +767,26 @@ void Editor::actionsWidget() {
       ImGui::TreePop();
     }
     ImGui::PopID();
-    if (deleteAction) {
-      if (action.next) {
-        actionHolders[action.next].erase(&action.next);
-      }
-      if (auto it = actionHolders.find(&action); it != actionHolders.end()) {
-        for (Action** holder : it->second) {
-          *holder = nullptr;
-        }
-        actionHolders.erase(it);
-      }
-      it = actions.erase(it);
-    } else {
-      ++it;
-    }
   }
+  if (to_swap != actions.end()) {
+    actions.splice(to_swap, actions, std::next(to_swap));
+  } else if (to_delete != actions.end()) {
+    auto& action = *to_delete;
+    if (action.next) {
+      actionHolders[action.next].erase(&action.next);
+    }
+    if (action.holderBuf) {
+      holderHolders[action.holderBuf].erase(&action);
+    }
+    if (auto it = actionHolders.find(&action); it != actionHolders.end()) {
+      for (Action** holder : it->second) {
+        *holder = nullptr;
+      }
+      actionHolders.erase(it);
+    }
+    actions.erase(to_delete);
+  }
+
   highlightedAction = currentHighlightedAction;
 
   if (ImGui::Button("Add")) ImGui::OpenPopup("AddActionPopup");
@@ -730,7 +806,64 @@ void Editor::actionsWidget() {
     if (ImGui::Selectable("Level")) {
       actions.emplace_back(Action{ActionData::Level{}});
     }
+    if (ImGui::Selectable("Action")) {
+      actions.emplace_back(Action{ActionData::Action{}});
+    }
     ImGui::EndPopup();
+  }
+}
+
+void Editor::actionTarget(Action*& action, const char* descriptor) {
+  std::stringstream ss;
+  if (action) {
+    ss << action;
+  } else {
+    ss << "<no action>";
+  }
+  ss << descriptor;
+  if (ImGui::Button(ss.str().c_str())) {
+    action = nullptr;
+    actionHolders[action].erase(&action);
+  }
+  if (ImGui::IsItemHovered()) {
+    currentHighlightedAction = action;
+  }
+  if (ImGui::BeginDragDropTarget()) {
+    if (const ImGuiPayload* payload =
+            ImGui::AcceptDragDropPayload("ActionPayload")) {
+      action = *(Action**)payload->Data;
+      actionHolders[action].insert(&action);
+    }
+    ImGui::EndDragDropTarget();
+  }
+}
+
+void Editor::holderTarget(Action& target, const char* descriptor) {
+  std::stringstream ss;
+  if (target.holderEntityBuf) {
+    ss << target.holderEntityBuf;
+  } else {
+    ss << "<no holder>";
+  }
+  ss << descriptor;
+  if (ImGui::Button(ss.str().c_str())) {
+    target.holderBuf = nullptr;
+    target.holderEntityBuf = nullptr;
+    holderHolders[target.holderBuf].erase(&target);
+  }
+  if (ImGui::IsItemHovered()) {
+    highlightedHolderEntity = target.holderEntityBuf;
+  }
+  if (ImGui::BeginDragDropTarget()) {
+    if (const ImGuiPayload* payload =
+            ImGui::AcceptDragDropPayload("HolderPayload")) {
+      auto data =
+          *reinterpret_cast<std::pair<Action**, Entity*>*>(payload->Data);
+      target.holderBuf = data.first;
+      target.holderEntityBuf = data.second;
+      holderHolders[target.holderBuf].insert(&target);
+    }
+    ImGui::EndDragDropTarget();
   }
 }
 
@@ -772,47 +905,48 @@ void Editor::saveWidget() {
 }
 
 void Editor::load(const std::filesystem::path& filename) {
-  auto rollback = [=, &backref = *this,
-                   backgroundTexture = std::move(backgroundTexture),
-                   backgroundSize =
-                       sf::Vector2f(backgroundSize[0], backgroundSize[1]),
-                   tilesetTexture = std::move(tilesetTexture),
-                   tiles = std::move(tiles), colliders = std::move(colliders),
-                   entities = std::move(entities), actions = std::move(actions),
-                   actionHolders = std::move(actionHolders)]() mutable {
-    // background inner state
-    if (backgroundTexture) {
-      backgroundTexture->setRepeated(backgroundRepeated);
-      backref.background.setTexture(backgroundTexture.get(), backgroundSize);
-    } else {
-      backref.background.unsetTexture();
-    }
-    backref.background.setMoving(backgroundMoving);
-    backref.background.setView(backref.window.getView());
-    backref.backgroundTexture = std::move(backgroundTexture);
-    backref.backgroundTexturePath = backgroundTexturePath;
-    // background editor state
-    backref.noBackground = noBackground;
-    backref.backgroundPathBuf = backgroundPathBuf;
-    backref.backgroundSize[0] = backgroundSize.x;
-    backref.backgroundSize[1] = backgroundSize.y;
-    backref.backgroundMoving = backgroundMoving;
-    backref.backgroundRepeated = backgroundRepeated;
-    // tilemap inner state
-    backref.tiles = std::move(tiles);
-    backref.colliders = std::move(colliders);
-    backref.tilesetTexture = std::move(tilesetTexture);
-    backref.tilesetPath = tilesetPath;
-    backref.selectedTile = selectedTile;
-    // tilemap editor state
-    backref.tilesetTileSize = tilesetTileSize;
-    backref.tilesetPathBuf = tilesetPathBuf;
-    // entities & actions inner state
-    backref.entities = std::move(entities);
-    backref.actions = std::move(actions);
-    backref.actionHolders = std::move(actionHolders);
-    backref.startAction = startAction;
-  };
+  auto rollback =
+      [=, &backref = *this, backgroundTexture = std::move(backgroundTexture),
+       backgroundSize = sf::Vector2f(backgroundSize[0], backgroundSize[1]),
+       tilesetTexture = std::move(tilesetTexture), tiles = std::move(tiles),
+       colliders = std::move(colliders), entities = std::move(entities),
+       actions = std::move(actions), actionHolders = std::move(actionHolders),
+       holderHolders = std::move(holderHolders)]() mutable {
+        // background inner state
+        if (backgroundTexture) {
+          backgroundTexture->setRepeated(backgroundRepeated);
+          backref.background.setTexture(backgroundTexture.get(),
+                                        backgroundSize);
+        } else {
+          backref.background.unsetTexture();
+        }
+        backref.background.setMoving(backgroundMoving);
+        backref.background.setView(backref.window.getView());
+        backref.backgroundTexture = std::move(backgroundTexture);
+        backref.backgroundTexturePath = backgroundTexturePath;
+        // background editor state
+        backref.noBackground = noBackground;
+        backref.backgroundPathBuf = backgroundPathBuf;
+        backref.backgroundSize[0] = backgroundSize.x;
+        backref.backgroundSize[1] = backgroundSize.y;
+        backref.backgroundMoving = backgroundMoving;
+        backref.backgroundRepeated = backgroundRepeated;
+        // tilemap inner state
+        backref.tiles = std::move(tiles);
+        backref.colliders = std::move(colliders);
+        backref.tilesetTexture = std::move(tilesetTexture);
+        backref.tilesetPath = tilesetPath;
+        backref.selectedTile = selectedTile;
+        // tilemap editor state
+        backref.tilesetTileSize = tilesetTileSize;
+        backref.tilesetPathBuf = tilesetPathBuf;
+        // entities & actions inner state
+        backref.entities = std::move(entities);
+        backref.actions = std::move(actions);
+        backref.actionHolders = std::move(actionHolders);
+        backref.holderHolders = std::move(holderHolders);
+        backref.startAction = startAction;
+      };
   try {
     std::ifstream in(filename);
     LevelData data = LevelData::load(in);
@@ -976,8 +1110,8 @@ void Editor::loadEntities(std::vector<EntityData>& data) {
   entities.clear();
   selectedEntity = nullptr;
   for (auto& entity : data) {
-    std::visit(overloaded{
-                   [&](EntityData::Player& player) {
+    std::visit(
+        overloaded{[&](EntityData::Player& player) {
                      entities.emplace_back(Entity{font, Entity::Player{}});
                    },
                    [&](EntityData::Character& character) {
@@ -988,8 +1122,10 @@ void Editor::loadEntities(std::vector<EntityData>& data) {
                      entities.emplace_back(Entity{font, Entity::Prop{}});
                      // TODO(des): drawable data
                    },
-               },
-               entity.data);
+                   [&](EntityData::Trigger& trigger) {
+                     entities.emplace_back(Entity{font, Entity::Trigger{}});
+                   }},
+        entity.data);
     entities.back().position = entity.position;
     prepareEntity(entities.back());
     selectEntity(&entities.back());  // NOTE(des): this hack stinks
@@ -999,8 +1135,8 @@ void Editor::loadEntities(std::vector<EntityData>& data) {
 
 void Editor::saveEntities(std::vector<EntityData>& data, sf::Vector2i origin) {
   for (auto& entity : entities) {
-    std::visit(overloaded{
-                   [&](Entity::Player& player) {
+    std::visit(
+        overloaded{[&](Entity::Player& player) {
                      data.emplace_back(EntityData{entity.position - origin,
                                                   EntityData::Player{}});
                    },
@@ -1012,15 +1148,20 @@ void Editor::saveEntities(std::vector<EntityData>& data, sf::Vector2i origin) {
                      data.emplace_back(EntityData{entity.position - origin,
                                                   EntityData::Prop{}});
                    },
-               },
-               entity.data);
+                   [&](Entity::Trigger& trigger) {
+                     data.emplace_back(EntityData{entity.position - origin,
+                                                  EntityData::Trigger{}});
+                   }},
+        entity.data);
   }
 }
 
 void Editor::loadActions(std::vector<ActionData>& data) {
   actions.clear();
   actionHolders.clear();
+  holderHolders.clear();
   highlightedAction = nullptr;
+  highlightedHolderEntity = nullptr;
   for (auto& actionData : data) {
     auto& action = actions.emplace_back(Action{actionData});
     std::visit(
@@ -1032,10 +1173,10 @@ void Editor::loadActions(std::vector<ActionData>& data) {
                                     ActionData::CharIcon, ActionData::Image,
                                     ActionData::Sound, ActionData::Music,
                                     ActionData::Level>) {
-            action.pathbuf = actionType.filename;
+            action.pathBuf = actionType.filename;
           }
           if constexpr (is_one_of_v<ActionType, ActionData::Level>) {
-            action.intbuf = std::to_string(actionType.playerSpot);
+            action.intBuf = std::to_string(actionType.playerSpot);
           }
         },
         actionData.data);
@@ -1053,10 +1194,10 @@ void Editor::saveActions(std::vector<ActionData>& data) {
                                     ActionData::CharIcon, ActionData::Image,
                                     ActionData::Sound, ActionData::Music,
                                     ActionData::Level>) {
-            actionType.filename = action.pathbuf;
+            actionType.filename = action.pathBuf;
           }
           if constexpr (is_one_of_v<ActionType, ActionData::Level>) {
-            actionType.playerSpot = std::stoi(action.intbuf);
+            actionType.playerSpot = std::stoi(action.intBuf);
           }
         },
         action.data.data);
@@ -1066,6 +1207,8 @@ void Editor::saveActions(std::vector<ActionData>& data) {
 
 void Editor::bindActionRefs(LevelData& data) {
   std::vector<Action*> actionRefs(actions.size());
+  std::vector<Action**> holderRefs;
+  std::vector<Entity*> holderEntityRefs;
   {
     auto it = actions.begin();
     for (std::size_t i = 0; i < actions.size(); ++it, i++) {
@@ -1078,6 +1221,8 @@ void Editor::bindActionRefs(LevelData& data) {
     for (std::size_t i = 0; i < data.entities.size(); ++it, i++) {
       auto& entityData = data.entities[i];
       auto& entity = *it;
+      Action** holder = nullptr;
+      Entity* holderEntity = nullptr;
       std::visit(
           overloaded{
               [&](EntityData::Player& player) {},
@@ -1088,6 +1233,8 @@ void Editor::bindActionRefs(LevelData& data) {
                   action = actionRefs.at(character.action);
                   actionHolders[action].insert(&action);
                 }
+                holder = &action;
+                holderEntity = &entity;
               },
               [&](EntityData::Prop& prop) {
                 Action*& action =
@@ -1096,8 +1243,22 @@ void Editor::bindActionRefs(LevelData& data) {
                   action = actionRefs.at(prop.action);
                   actionHolders[action].insert(&action);
                 }
+                holder = &action;
+                holderEntity = &entity;
+              },
+              [&](EntityData::Trigger& trigger) {
+                Action*& action =
+                    std::get<Entity::Trigger>(entity.data).interactible.action;
+                if (trigger.action != -1) {
+                  action = actionRefs.at(trigger.action);
+                  actionHolders[action].insert(&action);
+                }
+                holder = &action;
+                holderEntity = &entity;
               }},
           entityData.data);
+      holderRefs.push_back(holder);
+      holderEntityRefs.push_back(holderEntity);
     }
   }
 
@@ -1108,6 +1269,17 @@ void Editor::bindActionRefs(LevelData& data) {
     if (next != -1) {
       action.next = actionRefs.at(next);
       actionHolders[action.next].insert(&action.next);
+    }
+    if (auto actionAction = std::get_if<ActionData::Action>(&it->data.data)) {
+      if (actionAction->holder != -1) {
+        it->holderBuf = holderRefs.at(actionAction->holder);
+        it->holderEntityBuf = holderEntityRefs.at(actionAction->holder);
+        holderHolders[it->holderBuf].insert(&*it);
+      }
+      if (actionAction->action != -1) {
+        it->actionBuf = actionRefs.at(actionAction->action);
+        actionHolders[it->actionBuf].insert(&it->actionBuf);
+      }
     }
   }
 
@@ -1120,12 +1292,14 @@ void Editor::bindActionRefs(LevelData& data) {
 }
 
 void Editor::bindActionIndices(LevelData& data) {
-  std::unordered_map<Action*, int> index;
-  index[nullptr] = -1;
+  std::unordered_map<Action*, int> actionIndex;
+  std::unordered_map<Action**, int> holderIndex;
+  actionIndex[nullptr] = -1;
+  holderIndex[nullptr] = -1;
   {
     int i = 0;
     for (auto& action : actions) {
-      index[&action] = i++;
+      actionIndex[&action] = i++;
     }
   }
 
@@ -1138,13 +1312,22 @@ void Editor::bindActionIndices(LevelData& data) {
           overloaded{
               [&](EntityData::Player& player) {},
               [&](EntityData::Character& character) {
-                character.action =
-                    index.at(std::get<Entity::Character>(entity.data)
-                                 .interactible.action);
+                auto& holder = std::get<Entity::Character>(entity.data)
+                                   .interactible.action;
+                character.action = actionIndex.at(holder);
+                holderIndex[&holder] = i;
               },
               [&](EntityData::Prop& prop) {
-                prop.action = index.at(
-                    std::get<Entity::Prop>(entity.data).interactible.action);
+                auto& holder =
+                    std::get<Entity::Prop>(entity.data).interactible.action;
+                prop.action = actionIndex.at(holder);
+                holderIndex[&holder] = i;
+              },
+              [&](EntityData::Trigger& trigger) {
+                auto& holder =
+                    std::get<Entity::Trigger>(entity.data).interactible.action;
+                trigger.action = actionIndex.at(holder);
+                holderIndex[&holder] = i;
               }},
           entityData.data);
     }
@@ -1154,10 +1337,17 @@ void Editor::bindActionIndices(LevelData& data) {
   auto it = actions.begin();
   for (std::size_t i = 0; i < data.nextAction.size(); ++it, i++) {
     auto& action = *it;
-    data.nextAction[i] = index.at(action.next);
+    data.nextAction[i] = actionIndex.at(action.next);
+    if (auto actionAction =
+            std::get_if<ActionData::Action>(&data.actions[i].data)) {
+      if (action.actionBuf) {
+        actionAction->action = actionIndex.at(action.actionBuf);
+        actionAction->holder = holderIndex.at(action.holderBuf);
+      }
+    }
   }
 
-  data.meta.startAction = index.at(startAction);
+  data.meta.startAction = actionIndex.at(startAction);
 }
 
 void Editor::draw() {

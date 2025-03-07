@@ -13,10 +13,15 @@
 class Editor {
  private:
   // Data types
+  struct Entity;
+
   struct Action {
     ActionData data;
-    std::string pathbuf;
-    std::string intbuf;
+    std::string pathBuf;
+    std::string intBuf;
+    Action* actionBuf = nullptr;
+    Action** holderBuf = nullptr;
+    Entity* holderEntityBuf = nullptr;
     Action* next = nullptr;
   };
 
@@ -39,6 +44,10 @@ class Editor {
       Interactible interactible;
     };
 
+    struct Trigger {
+      Interactible interactible;
+    };
+
     Entity(const sf::Font& font, Player player)
         : position{0, 0}, data{player}, frame{}, text{font, "Player", 20} {}
 
@@ -51,8 +60,11 @@ class Editor {
     Entity(const sf::Font& font, Prop prop)
         : position{0, 0}, data{prop}, frame{}, text{font, "Prop", 20} {}
 
+    Entity(const sf::Font& font, Trigger trigger)
+        : position{0, 0}, data{trigger}, frame{}, text{font, "Trigger", 20} {}
+
     sf::Vector2i position;
-    std::variant<Player, Character, Prop> data;
+    std::variant<Player, Character, Prop, Trigger> data;
 
     sf::RectangleShape frame;
     sf::Text text;
@@ -63,6 +75,8 @@ class Editor {
   static constexpr auto panMouseButton = sf::Mouse::Button::Left;
   static constexpr auto placeTileMouseButton = sf::Mouse::Button::Left;
   static constexpr auto removeTileMouseButton = sf::Mouse::Button::Right;
+  static constexpr auto moveUpKey = sf::Keyboard::Key::Up;
+  static constexpr auto moveDownKey = sf::Keyboard::Key::Down;
 
   // Colors
   static constexpr sf::Color backgroundColor = sf::Color(10, 10, 10);
@@ -114,6 +128,10 @@ class Editor {
 
   // Inner state
   bool panButtonPressed = false;
+  bool moveUpButtonPressed = false;
+  bool moveDownButtonPressed = false;
+  bool moveUpButtonClicked = false;
+  bool moveDownButtonClicked = false;
   float scale = 1.f;
   std::string loadPopupText, savePopupText;
   sf::Vector2i lastPressPosition;
@@ -122,7 +140,10 @@ class Editor {
   std::map<std::pair<int, int>, std::pair<int, sf::Sprite>> tiles;
   std::set<std::pair<int, int>> colliders;
   std::unordered_map<Action*, std::set<Action**>> actionHolders;
+  std::unordered_map<Action**, std::set<Action*>> holderHolders;
   Action* highlightedAction = nullptr;
+  Action* currentHighlightedAction = nullptr;
+  Entity* highlightedHolderEntity = nullptr;
 
   // Members
   sf::RenderWindow window;
@@ -175,13 +196,15 @@ class Editor {
   void backgroundWidget();
 
   void tilesetLoadWidget();
-
   void tilesetSelectWidget();
 
   void entitiesWidget();
 
   void spriteSheetsWidget();
+
   void actionsWidget();
+  void actionTarget(Action*& action, const char* descriptor = "");
+  void holderTarget(Action& target, const char* descriptor = "");
 
   void loadWidget();
   void saveWidget();

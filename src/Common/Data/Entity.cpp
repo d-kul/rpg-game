@@ -24,6 +24,10 @@ EntityData EntityData::load(std::istream& in) {
     // TODO(des): sprite data...
     in >> prop.action >> std::ws;
     return EntityData(position, prop);
+  } else if (line == EntityData::Trigger::HEADER) {
+    EntityData::Trigger trigger;
+    in >> trigger.action >> std::ws;
+    return EntityData(position, trigger);
   } else {
     ERROR("invalid entity header");
     throw std::runtime_error("invalid entity header");
@@ -35,12 +39,18 @@ void EntityData::save(std::ostream& out) {
       [&](auto&& data) { out << std::decay_t<decltype(data)>::HEADER << '\n'; },
       data);
   out << position.x << ' ' << position.y;
-  std::visit(
-      overloaded{[&](EntityData::Player& player) {},
-                 [&](EntityData::Character& character) {
-                   out << ' ' << character.action;
-                 },
-                 [&](EntityData::Prop& prop) { out << ' ' << prop.action; }},
-      data);
+  std::visit(overloaded{[&](EntityData::Player& player) {},
+                        [&](EntityData::Character& character) {
+                          // TODO(des): sprite data
+                          out << ' ' << character.action;
+                        },
+                        [&](EntityData::Prop& prop) {
+                          // TODO(des): sprite data
+                          out << ' ' << prop.action;
+                        },
+                        [&](EntityData::Trigger& trigger) {
+                          out << ' ' << trigger.action;
+                        }},
+             data);
   out << '\n';
 }

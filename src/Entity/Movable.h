@@ -11,6 +11,7 @@ class MovableEntity : public virtual Entity {
 
  protected:
   virtual void onSetDestination() {}
+  virtual void onSnap() {}
   virtual void onStop() {}
   virtual void onMove() {}
 

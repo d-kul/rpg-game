@@ -1,9 +1,9 @@
-#include "Interactible.h"
+#include "Manager/Interactible.h"
 
 InteractibleEntity::InteractibleEntity(InteractibleManager& manager,
                                        Action* action)
     : action(action), manager(manager) {
-  manager.addInteractible(*this);
+  manager.add(*this);
 }
 
-InteractibleEntity::~InteractibleEntity() { manager.removeInteractible(*this); }
+InteractibleEntity::~InteractibleEntity() { manager.remove(*this); }

@@ -46,7 +46,7 @@ class EntityData {
       : position(position), data(entity) {}
 
   sf::Vector2i position;
-  std::variant<Player, Character, Prop> data;
+  std::variant<Player, Character, Prop, Trigger> data;
 
   static EntityData load(std::istream& in);
   void save(std::ostream& out);
