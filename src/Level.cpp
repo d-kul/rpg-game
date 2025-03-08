@@ -77,7 +77,7 @@ void Level::unload() {
   entities.clear();
   colliders.clear();
   actions.clear();
-  game.audioManager.clear();
+  tilemap.clear();
   background.unsetTexture();
   player = nullptr;
   if (activeAction) {
@@ -167,7 +167,7 @@ void Level::loadActions(
                   game.resourceManager.retain<sf::Texture>(image.filename);
               actions.emplace_back(
                   std::make_unique<ImageAction>(*this, *texture));
-              resourceNames.insert(image.filename);
+              persistentResources.insert(image.filename);
               actionRefs.push_back(actions.back().get());
             },
             [&](ActionData::Sound& sound) {
@@ -176,7 +176,7 @@ void Level::loadActions(
               actions.emplace_back(std::make_unique<SoundAction>(
                   game.audioManager, *soundBuffer, sound.looping,
                   sound.offsetSeconds, sound.volume));
-              resourceNames.insert(sound.filename);
+              persistentResources.insert(sound.filename);
               actionRefs.push_back(actions.back().get());
             },
             [&](ActionData::Music& music) {

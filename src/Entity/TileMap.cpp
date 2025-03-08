@@ -8,7 +8,6 @@ void TileMap::load(const TileSet& tileset, std::vector<short> tiles,
                    float tileSize, sf::Vector2u size) {
   SDEBUG(" ", &tileset.getTexture(), tiles.size(), tileSize, size.x, size.y);
   this->texture = &tileset.getTexture();
-  this->tiles = std::move(tiles);
   this->tileSize = tileSize;
   this->size = size;
 
@@ -20,7 +19,7 @@ void TileMap::load(const TileSet& tileset, std::vector<short> tiles,
 
   for (unsigned i = 0; i < height; i++) {
     for (unsigned j = 0; j < width; j++) {
-      const short tile = this->tiles[i * width + j];
+      const short tile = tiles[i * width + j];
       const unsigned tu = tile % tileset.getSize().x;
       const unsigned tv = tile / tileset.getSize().x;
       sf::Vertex* triangles = &vertices[(i * width + j) * 6];
@@ -57,6 +56,11 @@ void TileMap::load(const TileSet& tileset, std::vector<short> tiles,
                                             tv * tileset_tile_size.y);
     }
   }
+}
+
+void TileMap::clear() {
+  vertices.clear();
+  texture = nullptr;
 }
 
 sf::Vector2u TileMap::getSize() { return size; }

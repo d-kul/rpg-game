@@ -20,7 +20,7 @@ void GameState::loadResources() {
 
 void GameState::loadLevel() {
   level.loadFromFile(
-      "resources/data/levels/level.txt");  // TODO(des): move initial level name
+      "resources/data/levels/start.txt");  // TODO(des): move initial level name
                                            // somewhere else
 }
 

@@ -2,6 +2,8 @@
 
 #include <SFML/Audio/Sound.hpp>
 
+#include "Core/Logger.h"
+
 // TODO(des): reduce copypasting
 
 AudioManager::sounds_t::iterator AudioManager::loadSound(
@@ -45,9 +47,14 @@ AudioManager::sounds_t::iterator AudioManager::playSound(
 }
 
 void AudioManager::clearStoppedSounds() {
-  playing_sounds.remove_if([](const sf::Sound& s) {
-    return s.getStatus() == sf::Sound::Status::Stopped;
-  });
+  for (auto it = playing_sounds.begin(); it != playing_sounds.end();) {
+    auto& sound = *it;
+    if (sound.getStatus() == sf::Sound::Status::Stopped) {
+      it = playing_sounds.erase(it);
+    } else {
+      ++it;
+    }
+  }
 }
 
 int AudioManager::playingSounds() { return playing_sounds.size(); }

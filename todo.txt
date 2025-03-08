@@ -39,13 +39,13 @@ x action processing in game
 x action menu in editor
 x dialog box
 x loading entities in levels
-trigger zone
-sprite sheets in editor
-loading sprites in levels
-action action
+x trigger zone
+x action action
 (A) the game content itself
 build for multiple platforms
 test build on other platforms
+*loading sprites in levels
+*sprite sheets in editor
 *saving settings
 *benchmarking
 *text animation w/ custom text class

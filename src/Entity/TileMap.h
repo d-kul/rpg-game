@@ -11,6 +11,8 @@ class TileMap : public Entity {
   void load(const TileSet& tileset, std::vector<short> tiles, float tileSize,
             sf::Vector2u size);
 
+  void clear();
+
   sf::Vector2u getSize();
 
   void update(sf::Time dt) override;
@@ -22,6 +24,5 @@ class TileMap : public Entity {
  private:
   sf::VertexArray vertices;
   const sf::Texture* texture;
-  std::vector<short> tiles;
   sf::Vector2u size;
 };

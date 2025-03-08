@@ -142,6 +142,10 @@ void Editor::prepareEntity(Entity& entity) {
 }
 
 void Editor::setTile(sf::Vector2i position, int tile) {
+  if (tile == -1) {
+    eraseTile(position);
+    return;
+  }
   auto element =
       std::make_pair(tile, sf::Sprite(*tilesetTexture, tileset.getRect(tile)));
   element.second.setPosition(
@@ -375,8 +379,7 @@ void Editor::widgets() {
     ImGui::EndTabBar();
   }
 
-  loadWidget();
-  saveWidget();
+  levelWidget();
   ImGui::End();
 }
 
@@ -458,7 +461,7 @@ void Editor::tilesetSelectWidget() {
   auto startPosX = ImGui::GetCursorPosX();
   for (unsigned i = 0; i < h; i++) {
     for (unsigned j = 0; j < w; j++) {
-      auto idx = i * h + j;
+      auto idx = i * w + j;
       ImGui::PushID(idx);
       selectableTileSprite->setTextureRect(tileset.getRect(idx));
       auto cursorPos = ImGui::GetCursorPos();
@@ -867,39 +870,25 @@ void Editor::holderTarget(Action& target, const char* descriptor) {
   }
 }
 
-void Editor::loadWidget() {
-  ImGui::SeparatorText("Loading");
-  ImGui::InputText("Path##load", loadPathBuf, sizeof(loadPathBuf));
-  if (ImGui::Button("Load")) {
-    try {
-      load(loadPathBuf);
-    } catch (const std::filesystem::filesystem_error& e) {
-      loadPopupText = "failed to load level data from " +
-                      std::string(loadPathBuf) + ": " + e.what();
-      ImGui::OpenPopup("LoadPopup");
+void Editor::levelWidget() {
+  ImGui::SeparatorText("Loading/Saving");
+  ImGui::InputText("Path##level", levelPathBuf, sizeof(levelPathBuf));
+  ImGui::DragFloat("Tile size", &levelTileSize, 0.25f, 1.0f, FLT_MAX, "%.2f");
+  try {
+    if (ImGui::Button("Save")) {
+      save(levelPathBuf);
     }
-  }
-  if (ImGui::BeginPopup("LoadPopup")) {
-    ImGui::Text("%s", loadPopupText.c_str());
-    ImGui::EndPopup();
-  }
-}
-
-void Editor::saveWidget() {
-  ImGui::SeparatorText("Saving");
-  ImGui::InputText("Path##save", savePathBuf, sizeof(savePathBuf));
-  ImGui::DragFloat("Tile size", &saveTileSize, 0.25f, 1.0f, FLT_MAX, "%.2f");
-  if (ImGui::Button("Save")) {
-    try {
-      save(savePathBuf);
-    } catch (const std::filesystem::filesystem_error& e) {
-      savePopupText = "failed to save level data to " +
-                      std::string(savePathBuf) + ": " + e.what();
-      ImGui::OpenPopup("SavePopup");
+    ImGui::SameLine(0.0f, 2.5f);
+    if (ImGui::Button("Load")) {
+      load(levelPathBuf);
     }
+  } catch (const std::exception& e) {
+    levelPopupText = "failed to load level data from " +
+                     std::string(levelPathBuf) + ": " + e.what();
+    ImGui::OpenPopup("LevelPopup");
   }
-  if (ImGui::BeginPopup("SavePopup")) {
-    ImGui::Text("%s", savePopupText.c_str());
+  if (ImGui::BeginPopup("LevelPopup")) {
+    ImGui::Text("%s", levelPopupText.c_str());
     ImGui::EndPopup();
   }
 }
@@ -955,31 +944,25 @@ void Editor::load(const std::filesystem::path& filename) {
     loadEntities(data.entities);
     loadActions(data.actions);
     bindActionRefs(data);
-    loadPopupText = "Loaded successfully";
+    levelPopupText = "Loaded successfully";
   } catch (const std::exception& e) {
-    loadPopupText =
-        "failed to load level data from " + filename.string() + ": " + e.what();
     rollback();
+    throw;
   }
-  ImGui::OpenPopup("LoadPopup");
+  ImGui::OpenPopup("LevelPopup");
 }
 
 void Editor::save(const std::filesystem::path& filename) {
   std::ofstream out(filename);
-  try {
-    LevelData data;
-    saveBackground(data);
-    sf::Vector2i origin = saveTilemap(data);
-    saveEntities(data.entities, origin);
-    saveActions(data.actions);
-    bindActionIndices(data);
-    data.save(out);
-    savePopupText = "Saved successfully";
-  } catch (const std::runtime_error& e) {
-    savePopupText =
-        "failed to save level data to " + filename.string() + ": " + e.what();
-  }
-  ImGui::OpenPopup("SavePopup");
+  LevelData data;
+  saveBackground(data);
+  sf::Vector2i origin = saveTilemap(data);
+  saveEntities(data.entities, origin);
+  saveActions(data.actions);
+  bindActionIndices(data);
+  data.save(out);
+  levelPopupText = "Saved successfully";
+  ImGui::OpenPopup("LevelPopup");
 }
 
 void Editor::loadBackgroundFile() {
@@ -1081,7 +1064,7 @@ sf::Vector2i Editor::saveTilemap(LevelData& data) {
   int width = tiles.empty() && colliders.empty() ? 0 : max_x - min_x + 1;
   int height = tiles.empty() && colliders.empty() ? 0 : max_y - min_y + 1;
   data.tilemap.noTileset = !tilesetTexture || tiles.empty();
-  data.tilemap.tileSize = saveTileSize;
+  data.tilemap.tileSize = levelTileSize;
   if (!data.tilemap.noTileset) {
     data.tilemap.tilesetPath = tilesetPath;
     data.tilemap.tilesetTileSize =

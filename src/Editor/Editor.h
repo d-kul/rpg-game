@@ -116,10 +116,9 @@ class Editor {
   std::string tilesetPathBuf = "resources/images/tilesets/indoors.png";
   std::string tilesetPopupText;
 
-  char loadPathBuf[128] = "resources/data/levels/level.txt";
-
-  char savePathBuf[128] = "resources/data/levels/level.txt";
-  float saveTileSize = 64.f;
+  char levelPathBuf[128] = "resources/data/levels/level.txt";
+  float levelTileSize = 64.f;
+  std::string levelPopupText;
 
   std::list<Entity> entities;
   std::list<Action> actions;
@@ -133,7 +132,6 @@ class Editor {
   bool moveUpButtonClicked = false;
   bool moveDownButtonClicked = false;
   float scale = 1.f;
-  std::string loadPopupText, savePopupText;
   sf::Vector2i lastPressPosition;
   sf::Vector2f currentPosition;
   sf::IntRect widgetWindowRect;
@@ -206,8 +204,7 @@ class Editor {
   void actionTarget(Action*& action, const char* descriptor = "");
   void holderTarget(Action& target, const char* descriptor = "");
 
-  void loadWidget();
-  void saveWidget();
+  void levelWidget();
 
   void load(const std::filesystem::path& path);
   void save(const std::filesystem::path& path);

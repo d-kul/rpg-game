@@ -21,7 +21,6 @@ class EntityData {
 
   struct Player {
     static constexpr const char* HEADER = "(Player)";
-    // Sprite sprite;
   };
 
   struct Character {

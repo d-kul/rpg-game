@@ -3,6 +3,7 @@
 #include <SFML/Audio/SoundBuffer.hpp>
 
 #include "../Action.h"
+#include "Core/Logger.h"
 #include "Manager/Audio.h"
 
 class SoundAction : public Action {
@@ -17,10 +18,19 @@ class SoundAction : public Action {
         volume(volume) {}
 
   void start() override {
-    auto& sound = *manager.playSound(buffer);
-    sound.setLooping(looping);
-    sound.setPlayingOffset(sf::seconds(offsetSeconds));
-    sound.setVolume(volume);
+    sound = &*manager.playSound(buffer);
+    sound->setLooping(looping);
+    sound->setPlayingOffset(sf::seconds(offsetSeconds));
+    sound->setVolume(volume);
+    DEBUG(sound->getStatus() == sf::Sound::Status::Playing);
+  }
+
+  bool update(sf::Time dt) override {
+    return sound->getStatus() != sf::Sound::Status::Playing;
+  }
+
+  void end() override {
+    sound = nullptr;
   }
 
  private:
@@ -29,4 +39,5 @@ class SoundAction : public Action {
   bool looping;
   float offsetSeconds;
   float volume;
+  sf::Sound* sound = nullptr;
 };
