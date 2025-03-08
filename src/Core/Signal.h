@@ -29,7 +29,7 @@ class BaseConnection {
 
  protected:
   virtual BaseConnection* clone() const = 0;
-  friend class ConnectionGuard;
+  friend class ::ConnectionGuard;
 };
 }  // namespace internal
 
