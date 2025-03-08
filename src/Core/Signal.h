@@ -11,7 +11,7 @@ class BaseConnection;
 
 class ConnectionGuard {
  public:
-  ConnectionGuard() = default;
+  ConnectionGuard();
   ConnectionGuard(const internal::BaseConnection& conn);
   ConnectionGuard& operator=(const internal::BaseConnection& conn);
   ~ConnectionGuard();

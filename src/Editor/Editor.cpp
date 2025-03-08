@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <string>
 
 #include "Core/utility.h"
@@ -983,7 +984,7 @@ void Editor::loadBackground(std::optional<LevelData::Background>& data) {
     return;
   }
   noBackground = false;
-  backgroundPathBuf = data->texturePath;
+  backgroundPathBuf = data->texturePath.string();
   backgroundSize[0] = data->size.x;
   backgroundSize[1] = data->size.y;
   backgroundMoving = data->moving;
@@ -1022,7 +1023,7 @@ void Editor::loadTilemap(LevelData::Tilemap& data) {
     tiles.clear();
   } else {
     tilesetTileSize = data.tilesetTileSize;
-    tilesetPathBuf = data.tilesetPath;
+    tilesetPathBuf = data.tilesetPath.string();
     loadTilesetFile();
   }
   colliders.clear();

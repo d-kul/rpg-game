@@ -1,6 +1,7 @@
 #include "Config.h"
 
 #include <fstream>
+#include <sstream>
 
 Config Config::read(const std::filesystem::path& filename) {
   return Config{filename};

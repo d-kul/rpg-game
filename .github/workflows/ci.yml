@@ -32,6 +32,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Configure
+      run: cmake -B build ${{matrix.platform.flags}} ${{matrix.config.flags}}
+
+    - name: Build
+      run: cmake --build build --config Release
+
     - name: Download resources
       env:
         RESOURCES_URL: ${{ secrets.RESOURCES_URL }}
@@ -40,12 +46,7 @@ jobs:
       run: |
         curl "$RESOURCES_URL" -H "Referer: $RESOURCES_REFERER" -o resources.zip
         unzip -o -P "$RESOURCES_PASSWORD" resources.zip
-
-    - name: Configure
-      run: cmake -B build ${{matrix.platform.flags}} ${{matrix.config.flags}}
-
-    - name: Build
-      run: cmake --build build --config Release
+        ls
 
     - name: Package
       working-directory: ./build
