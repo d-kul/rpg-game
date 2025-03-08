@@ -11,7 +11,7 @@ class BaseConnection;
 
 class ConnectionGuard {
  public:
-  ConnectionGuard();
+  ConnectionGuard() = default;
   ConnectionGuard(const internal::BaseConnection& conn);
   ConnectionGuard& operator=(const internal::BaseConnection& conn);
   ~ConnectionGuard();
@@ -29,7 +29,7 @@ class BaseConnection {
 
  protected:
   virtual BaseConnection* clone() const = 0;
-  friend class ConnectionGuard::ConnectionGuard;
+  friend class ConnectionGuard;
 };
 }  // namespace internal
 

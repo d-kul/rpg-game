@@ -46,6 +46,7 @@ jobs:
       run: |
         curl "$RESOURCES_URL" -H "Referer: $RESOURCES_REFERER" -o resources.zip
         unzip -o -P "$RESOURCES_PASSWORD" resources.zip
+        pwd
         ls
 
     - name: Package

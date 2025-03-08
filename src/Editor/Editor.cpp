@@ -1157,7 +1157,7 @@ void Editor::loadActions(std::vector<ActionData>& data) {
                                     ActionData::CharIcon, ActionData::Image,
                                     ActionData::Sound, ActionData::Music,
                                     ActionData::Level>) {
-            action.pathBuf = actionType.filename;
+            action.pathBuf = actionType.filename.string();
           }
           if constexpr (is_one_of_v<ActionType, ActionData::Level>) {
             action.intBuf = std::to_string(actionType.playerSpot);
