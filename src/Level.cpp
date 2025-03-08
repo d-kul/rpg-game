@@ -131,7 +131,7 @@ void Level::loadBackground(std::optional<LevelData::Background>& data) {
   background.setTexture(texture.get(), data->size);
   texture->setRepeated(data->repeated);
   background.setMoving(data->moving);
-  resourceNames.insert(data->texturePath);
+  resourceNames.insert(data->texturePath.string());
 }
 
 void Level::loadTilemap(LevelData::Tilemap& data) {
@@ -141,7 +141,7 @@ void Level::loadTilemap(LevelData::Tilemap& data) {
     TileSet tileset{*tilesetTexture, data.tilesetTileSize};
     tilemap.load(tileset, std::move(data.tiles), data.tileSize,
                  sf::Vector2u(data.width, data.height));
-    resourceNames.insert(data.tilesetPath);
+    resourceNames.insert(data.tilesetPath.string());
   }
   auto tilemap_collider =
       std::make_unique<TileMapCollider>(game.colliderManager);
@@ -167,7 +167,7 @@ void Level::loadActions(
                   game.resourceManager.retain<sf::Texture>(image.filename);
               actions.emplace_back(
                   std::make_unique<ImageAction>(*this, *texture));
-              persistentResources.insert(image.filename);
+              persistentResources.insert(image.filename.string());
               actionRefs.push_back(actions.back().get());
             },
             [&](ActionData::Sound& sound) {
@@ -176,14 +176,14 @@ void Level::loadActions(
               actions.emplace_back(std::make_unique<SoundAction>(
                   game.audioManager, *soundBuffer, sound.looping,
                   sound.offsetSeconds, sound.volume));
-              persistentResources.insert(sound.filename);
+              persistentResources.insert(sound.filename.string());
               actionRefs.push_back(actions.back().get());
             },
             [&](ActionData::Music& music) {
               actions.emplace_back(std::make_unique<MusicAction>(
                   *this, music.filename, music.looping, music.offsetSeconds,
                   music.volume));
-              persistentResources.insert(music.filename);
+              persistentResources.insert(music.filename.string());
               actionRefs.push_back(actions.back().get());
             },
             [&](ActionData::Level& level) {

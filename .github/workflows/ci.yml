@@ -8,21 +8,21 @@ defaults:
 
 jobs:
   build:
-    name: ${{ matrix.platform.name }} ${{ matrix.config.name }}
+    name: ${{ matrix.platform.name }}-${{ matrix.config.name }}
     runs-on: ${{ matrix.platform.os }}
 
     strategy:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows VS2019, os: windows-2019  }
-        - { name: Windows VS2022, os: windows-2022  }
-        - { name: Linux GCC,      os: ubuntu-latest }
-        - { name: Linux Clang,    os: ubuntu-latest, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
+        - { name: windows-vs2019, os: windows-2019  }
+        - { name: windows-vs2022, os: windows-2022  }
+        - { name: linux-gcc,      os: ubuntu-latest }
+        - { name: linux-clang,    os: ubuntu-latest, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
         - { name: macOS,          os: macos-latest  }
         config:
-        - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE }
-        - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE }
+        - { name: shared, flags: -DBUILD_SHARED_LIBS=TRUE }
+        - { name: static, flags: -DBUILD_SHARED_LIBS=FALSE }
 
     steps:
     - name: Install Linux Dependencies
@@ -33,7 +33,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Configure
-      run: cmake -B build ${{matrix.platform.flags}} ${{matrix.config.flags}}
+      run: cmake -B build ${{ matrix.platform.flags }} ${{ matrix.config.flags }}
 
     - name: Build
       run: cmake --build build --config Release
@@ -55,7 +55,7 @@ jobs:
     - name: Create artifact
       uses: actions/upload-artifact@v4
       with:
-        name: binary-${{ matrix.platform.os }}-${{ matrix.config.name }}
+        name: binary-${{ matrix.platform.name }}-${{ matrix.config.name }}
         path: |
           build/pack/
           !build/pack/_CPack_Packages
