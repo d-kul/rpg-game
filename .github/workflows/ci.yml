@@ -45,9 +45,8 @@ jobs:
         RESOURCES_PASSWORD: ${{ secrets.RESOURCES_PASSWORD }}
       run: |
         curl "$RESOURCES_URL" -H "Referer: $RESOURCES_REFERER" -o resources.zip
-        unzip -o -P "$RESOURCES_PASSWORD" resources.zip
-        pwd
-        ls
+        unzip -o -P "$RESOURCES_PASSWORD" resource.zip
+        unzip -o resources.zip
 
     - name: Package
       working-directory: ./build

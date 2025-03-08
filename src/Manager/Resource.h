@@ -18,7 +18,7 @@ class ResourceManager {
   template <typename Resource, typename... Args>
   std::shared_ptr<Resource> load(const std::filesystem::path& filename,
                                  Args&&... args) {
-    auto it = resources.find(filename);
+    auto it = resources.find(filename.string());
     if (it != resources.end()) {
       // SDEBUG(" ", "cached", filename);
       return {it->second, reinterpret_cast<Resource*>(it->second.get())};
