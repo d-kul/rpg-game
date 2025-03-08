@@ -41,7 +41,7 @@ class ResourceManager {
   std::shared_ptr<Resource> retain(const std::filesystem::path& filename,
                                    Args&&... args) {
     auto res = load<Resource>(filename, std::forward<Args>(args)...);
-    resources.insert({filename, res});
+    resources.insert({filename.string(), res});
     return res;
   }
 
